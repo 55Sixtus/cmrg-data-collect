@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Bell, Search, RefreshCw, User, LogOut, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Bell, Search, RefreshCw, User, LogOut, Menu, CheckCircle2 } from 'lucide-react';
 
 interface HeaderProps {
   activeProjectCount: number;
   onSignOut: () => void;
+  onToggleSidebar: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeProjectCount, onSignOut }) => {
+export const Header: React.FC<HeaderProps> = ({ activeProjectCount, onSignOut, onToggleSidebar }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState('Just now');
@@ -20,9 +21,17 @@ export const Header: React.FC<HeaderProps> = ({ activeProjectCount, onSignOut })
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-30 px-6 py-3.5 flex items-center justify-between shadow-xs">
-      {/* Brand & Tagline */}
-      <div className="flex items-center gap-4">
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-40 px-4 sm:px-6 py-3.5 flex items-center justify-between shadow-xs">
+      {/* Brand & Mobile Hamburger */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onToggleSidebar}
+          className="md:hidden p-2 text-gray-600 hover:text-[#17243A] hover:bg-gray-100 rounded-lg transition-colors"
+          title="Toggle Navigation Menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         <div className="flex items-center gap-2.5">
           {/* Red square grid homage to CMRG logo */}
           <div className="grid grid-cols-4 gap-0.5 bg-[#C8202F] p-1 rounded-sm shadow-xs">
@@ -36,19 +45,19 @@ export const Header: React.FC<HeaderProps> = ({ activeProjectCount, onSignOut })
             <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-[#17243A] text-lg tracking-tight">CMRG <span className="text-[#C8202F]">DATA COLLECT</span></span>
-              <span className="bg-red-50 text-[#C8202F] text-[11px] font-semibold px-2 py-0.5 rounded-full border border-red-200">v4.8 Enterprise</span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="font-bold text-[#17243A] text-sm sm:text-lg tracking-tight">CMRG <span className="text-[#C8202F]">DATA COLLECT</span></span>
+              <span className="hidden sm:inline-block bg-red-50 text-[#C8202F] text-[11px] font-semibold px-2 py-0.5 rounded-full border border-red-200">v4.8 Enterprise</span>
             </div>
-            <p className="text-[11px] text-gray-500 font-medium tracking-wide">
+            <p className="hidden sm:block text-[11px] text-gray-500 font-medium tracking-wide">
               Tech savvy <span className="text-[#C8202F]">•</span> Data Integrity <span className="text-[#C8202F]">•</span> Actionable insights
             </p>
           </div>
         </div>
       </div>
 
-      {/* Global Search & Quick Actions */}
-      <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
+      {/* Global Search */}
+      <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -60,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({ activeProjectCount, onSignOut })
       </div>
 
       {/* Right Toolbar */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {/* Sync Status Button */}
         <button
           onClick={handleSync}
@@ -117,11 +126,11 @@ export const Header: React.FC<HeaderProps> = ({ activeProjectCount, onSignOut })
         </div>
 
         {/* User Profile & Sign Out */}
-        <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
-          <div className="w-9 h-9 rounded-full bg-[#17243A] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+        <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-gray-200">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#17243A] text-white flex items-center justify-center font-bold text-xs shadow-xs">
             TF
           </div>
-          <div className="hidden lg:block text-left">
+          <div className="hidden xl:block text-left">
             <p className="text-xs font-bold text-[#1B2430]">Dr. Tunde Fashola</p>
             <p className="text-[10px] text-gray-500 font-medium">Lead Research Director</p>
           </div>

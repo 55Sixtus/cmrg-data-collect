@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { ShieldCheck, Lock, Mail, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, Loader2, AlertCircle, Eye, EyeOff, Wrench } from 'lucide-react';
 
 interface LoginScreenProps {
   onLoginSuccess: () => void;
@@ -148,14 +148,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           </button>
         </form>
 
-        {/* Footer security notice */}
-        <div className="pt-4 border-t border-gray-100 text-center space-y-1">
+        {/* Footer security notice & Bold Static Developer Watermark */}
+        <div className="pt-4 border-t border-gray-100 text-center space-y-3">
           <p className="text-[11px] text-gray-500">
             Protected by Supabase Auth & Row Level Security (RLS).
           </p>
-          <p className="text-[10px] text-gray-400 font-mono">
-            Project: kmwzmyupvqjitugpckzp
-          </p>
+
+          <div className="bg-[#C8202F] text-white rounded-xl p-3 shadow-md text-center space-y-1">
+            <div className="flex items-center justify-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-red-100">
+              <Wrench className="w-3.5 h-3.5 text-white" />
+              <span>APP DEVELOPER</span>
+            </div>
+            <p className="text-xs font-extrabold text-white tracking-tight">SIXTUS TECH HUB</p>
+            <div className="bg-black/20 rounded-lg py-1 px-2 mt-1 inline-block">
+              <span className="text-xs font-mono font-bold text-white tracking-widest">08120678052</span>
+            </div>
+          </div>
         </div>
 
       </div>

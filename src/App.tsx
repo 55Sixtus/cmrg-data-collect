@@ -14,6 +14,7 @@ import { EnumeratorsView } from './components/EnumeratorsView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { SettingsView } from './components/SettingsView';
 import { LoginScreen } from './components/LoginScreen';
+import { Footer } from './components/Footer';
 import { Loader2, AlertCircle } from 'lucide-react';
 
 export default function App() {
@@ -21,6 +22,8 @@ export default function App() {
   const [authChecking, setAuthChecking] = useState(true);
 
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [questionnaires, setQuestionnaires] = useState<Questionnaire[]>(INITIAL_QUESTIONNAIRES);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -37,8 +40,6 @@ export default function App() {
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
       setAuthChecking(false);
-      // In demo mode without configured auth or for preview convenience, we can set session or leave null.
-      // Wait, requirement 2 & 3: "A protected dashboard that only renders for an authenticated session" & "If Supabase is not configured, show a clear setup message."
       return;
     }
 
@@ -147,7 +148,6 @@ export default function App() {
     setActiveTab('simulator');
   };
 
-  // If Supabase is configured and auth is checking
   if (authChecking) {
     return (
       <div className="min-h-screen bg-[#F6F7F9] flex flex-col items-center justify-center p-6 text-center">
@@ -160,9 +160,12 @@ export default function App() {
     );
   }
 
-  // If Supabase is configured and no active session, render LoginScreen
   if (isSupabaseConfigured && !session) {
-    return <LoginScreen onLoginSuccess={() => {}} />;
+    return (
+      <div className="min-h-screen flex flex-col justify-between bg-[#F6F7F9]">
+        <LoginScreen onLoginSuccess={() => {}} />
+      </div>
+    );
   }
 
   if (loading) {
@@ -182,9 +185,9 @@ export default function App() {
       <Header 
         activeProjectCount={projects.filter(p => p.status === 'Active').length} 
         onSignOut={() => supabase?.auth.signOut()} 
+        onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
       />
 
-      {/* Demo Mode Notice Banner if not configured */}
       {isDemo && !isSupabaseConfigured && (
         <div className="bg-amber-50 border-b border-amber-200 px-6 py-2 flex items-center justify-between text-xs text-amber-900">
           <div className="flex items-center gap-2">
@@ -203,65 +206,84 @@ export default function App() {
         </div>
       )}
 
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-          flaggedCount={flaggedCount} 
-        />
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Mobile Sidebar Overlay */}
+        {mobileSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-xs"
+            onClick={() => setMobileSidebarOpen(false)}
+          ></div>
+        )}
 
-        <main className="flex-1 overflow-y-auto">
-          {activeTab === 'dashboard' && (
-            <Dashboard 
-              projects={projects} 
-              submissions={submissions} 
-              enumerators={enumerators} 
-              onNavigateTab={setActiveTab} 
-            />
-          )}
+        <div className={`fixed inset-y-0 left-0 z-50 transform md:relative md:translate-x-0 transition-transform duration-300 ease-in-out ${
+          mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}>
+          <Sidebar 
+            activeTab={activeTab} 
+            setActiveTab={(tab) => {
+              setActiveTab(tab);
+              setMobileSidebarOpen(false);
+            }} 
+            flaggedCount={flaggedCount} 
+          />
+        </div>
 
-          {activeTab === 'projects' && (
-            <ProjectsView 
-              projects={projects} 
-              onAddProject={handleAddProject} 
-              onSelectProjectForSimulator={handleSelectProjectForSimulator} 
-            />
-          )}
+        <main className="flex-1 overflow-y-auto w-full flex flex-col justify-between">
+          <div className="flex-1">
+            {activeTab === 'dashboard' && (
+              <Dashboard 
+                projects={projects} 
+                submissions={submissions} 
+                enumerators={enumerators} 
+                onNavigateTab={setActiveTab} 
+              />
+            )}
 
-          {activeTab === 'builder' && (
-            <FormBuilder 
-              questionnaires={questionnaires} 
-              onUpdateQuestionnaire={handleUpdateQuestionnaire} 
-            />
-          )}
+            {activeTab === 'projects' && (
+              <ProjectsView 
+                projects={projects} 
+                onAddProject={handleAddProject} 
+                onSelectProjectForSimulator={handleSelectProjectForSimulator} 
+              />
+            )}
 
-          {activeTab === 'simulator' && (
-            <FormSimulator 
-              questionnaires={questionnaires} 
-              projects={projects} 
-              selectedProjectId={selectedProjectIdForSimulator} 
-              onAddSubmission={handleAddSubmission} 
-            />
-          )}
+            {activeTab === 'builder' && (
+              <FormBuilder 
+                questionnaires={questionnaires} 
+                onUpdateQuestionnaire={handleUpdateQuestionnaire} 
+              />
+            )}
 
-          {activeTab === 'quality' && (
-            <QualityControl 
-              submissions={submissions} 
-              onUpdateSubmissionStatus={handleUpdateSubmissionStatus} 
-            />
-          )}
+            {activeTab === 'simulator' && (
+              <FormSimulator 
+                questionnaires={questionnaires} 
+                projects={projects} 
+                selectedProjectId={selectedProjectIdForSimulator} 
+                onAddSubmission={handleAddSubmission} 
+              />
+            )}
 
-          {activeTab === 'enumerators' && (
-            <EnumeratorsView enumerators={enumerators} />
-          )}
+            {activeTab === 'quality' && (
+              <QualityControl 
+                submissions={submissions} 
+                onUpdateSubmissionStatus={handleUpdateSubmissionStatus} 
+              />
+            )}
 
-          {activeTab === 'analytics' && (
-            <AnalyticsView submissions={submissions} projects={projects} />
-          )}
+            {activeTab === 'enumerators' && (
+              <EnumeratorsView enumerators={enumerators} />
+            )}
 
-          {activeTab === 'settings' && (
-            <SettingsView auditLogs={auditLogs} />
-          )}
+            {activeTab === 'analytics' && (
+              <AnalyticsView submissions={submissions} projects={projects} />
+            )}
+
+            {activeTab === 'settings' && (
+              <SettingsView auditLogs={auditLogs} />
+            )}
+          </div>
+
+          <Footer />
         </main>
       </div>
     </div>
