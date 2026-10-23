@@ -1,0 +1,12 @@
+{
+  "name": "CMRG Data Collect",
+  "description": "Enterprise market research, consumer polling, and field data collection platform by CMRG Ltd. Alternative to SurveyCTO with GPS verification, real-time situation room, and offline-first architecture.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone",
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
