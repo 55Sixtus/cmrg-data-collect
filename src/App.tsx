@@ -16,6 +16,7 @@ import { SettingsView } from './components/SettingsView';
 import { LoginScreen } from './components/LoginScreen';
 import { Footer } from './components/Footer';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { offlineQueue } from './services/offlineQueue';
 
 export default function App() {
   const [session, setSession] = useState<any>(null);
@@ -35,6 +36,33 @@ export default function App() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [selectedProjectIdForSimulator, setSelectedProjectIdForSimulator] = useState<string>('proj-1');
+
+  // Listen to offline synced items from IndexedDB
+  useEffect(() => {
+    const unsubSync = offlineQueue.onSync((syncedSub) => {
+      setSubmissions(prev => {
+        const index = prev.findIndex(s => s.id === syncedSub.id || (s.client_submission_uuid && s.client_submission_uuid === syncedSub.client_submission_uuid));
+        if (index >= 0) {
+          const updated = [...prev];
+          updated[index] = { ...syncedSub, is_offline: false };
+          return updated;
+        }
+        return [{ ...syncedSub, is_offline: false }, ...prev];
+      });
+
+      // Update project completed count if it was newly added
+      setProjects(prev => prev.map(p => {
+        if (p.id === syncedSub.projectId) {
+          return { ...p, completedInterviews: p.completedInterviews + 1 };
+        }
+        return p;
+      }));
+    });
+
+    return () => {
+      unsubSync();
+    };
+  }, []);
 
   // Supabase Auth Session Restoration & Subscription
   useEffect(() => {

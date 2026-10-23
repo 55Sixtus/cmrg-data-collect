@@ -12,7 +12,9 @@ import {
   Eye, 
   Check, 
   X,
-  FileText
+  FileText,
+  WifiOff,
+  Database
 } from 'lucide-react';
 
 interface QualityControlProps {
@@ -97,7 +99,15 @@ export const QualityControl: React.FC<QualityControlProps> = ({ submissions, onU
               {filteredSubmissions.map(sub => (
                 <tr key={sub.id} className="hover:bg-gray-50 transition-colors">
                   <td className="p-3.5 font-mono font-semibold text-[#17243A]">
-                    {sub.id}
+                    <div className="flex items-center gap-1.5">
+                      <span>{sub.id}</span>
+                      {sub.is_offline && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-300">
+                          <WifiOff className="w-2.5 h-2.5 text-amber-700" />
+                          Offline
+                        </span>
+                      )}
+                    </div>
                     <span className="block text-[10px] text-gray-400 font-normal">{sub.submittedAt}</span>
                   </td>
                   <td className="p-3.5 font-medium text-gray-800 max-w-xs truncate">{sub.projectTitle}</td>
@@ -192,8 +202,18 @@ export const QualityControl: React.FC<QualityControlProps> = ({ submissions, onU
                   <strong className="text-[#17243A]">{selectedSub.durationSeconds} seconds</strong>
                 </div>
                 <div>
-                  <span className="text-gray-500 block">Current Status</span>
-                  <strong className="text-[#C8202F]">{selectedSub.status}</strong>
+                  <span className="text-gray-500 block">Storage & Data Channel</span>
+                  <strong className="text-[#17243A] flex items-center gap-1.5 mt-0.5">
+                    {selectedSub.is_offline ? (
+                      <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-100 px-2 py-0.5 rounded text-[10px] font-bold">
+                        <WifiOff className="w-3 h-3" /> IndexedDB Offline Queue
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded text-[10px] font-bold">
+                        <CheckCircle2 className="w-3 h-3" /> Live Synced (Supabase)
+                      </span>
+                    )}
+                  </strong>
                 </div>
               </div>
 

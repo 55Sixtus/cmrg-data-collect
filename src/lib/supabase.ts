@@ -1,11 +1,34 @@
 import { createClient } from '@supabase/supabase-js';
 
-let rawUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kmwzmyupvqjitugpckzp.supabase.co';
-// Sanitize URL in case user pasted /rest/v1/ or trailing slashes
-rawUrl = rawUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+const FALLBACK_URL = 'https://kmwzmyupvqjitugpckzp.supabase.co';
+const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imttd3pteXVwdnFqaXR1Z3Bja3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2MjQyODAsImV4cCI6MjEwODIwMDI4MH0.ql6hFTANRa4xPlYQ1lUaclTWP3fhr81ciDoUaurFvxc';
 
-const supabaseUrl = rawUrl;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imttd3pteXVwdnFqaXR1Z3Bja3pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2MjQyODAsImV4cCI6MjEwODIwMDI4MH0.ql6hFTANRa4xPlYQ1lUaclTWP3fhr81ciDoUaurFvxc';
+function sanitizeUrl(url?: string): string {
+  if (!url) return FALLBACK_URL;
+  let u = url.trim().replace(/^["'`]|["'`]$/g, '').trim();
+  u = u.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+  if (!u || u.includes('your-project') || u.includes('MY_APP_URL')) {
+    return FALLBACK_URL;
+  }
+  return u;
+}
+
+function sanitizeKey(key?: string): string {
+  if (!key) return FALLBACK_KEY;
+  let k = key.trim().replace(/^["'`]|["'`]$/g, '').trim();
+  // Strip accidental prefixes like 'public: ', 'anon: ', 'anon public: ', 'Bearer '
+  k = k.replace(/^(anon\s+public|public|anon|bearer)\s*:\s*/i, '').trim();
+  k = k.replace(/^(anon\s+public|public|anon)\s+/i, '').trim();
+  // Strip any internal spaces or linebreaks
+  k = k.replace(/\s+/g, '');
+  if (!k || k === 'your-anon-key' || k.length < 20) {
+    return FALLBACK_KEY;
+  }
+  return k;
+}
+
+const supabaseUrl = sanitizeUrl(import.meta.env.VITE_SUPABASE_URL);
+const supabaseAnonKey = sanitizeKey(import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && 

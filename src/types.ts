@@ -80,6 +80,8 @@ export interface Submission {
   flagReason?: string;
   audioUrl?: string;
   answers: Record<string, any>;
+  client_submission_uuid?: string;
+  is_offline?: boolean;
 }
 
 export interface Enumerator {

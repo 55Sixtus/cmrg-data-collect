@@ -11,9 +11,14 @@ import {
   Users, 
   FileSpreadsheet, 
   ArrowRight,
-  X
+  X,
+  Wifi,
+  WifiOff,
+  CloudUpload,
+  Database
 } from 'lucide-react';
 import { Project, Submission, Enumerator, TabType } from '../types';
+import { offlineQueue } from '../services/offlineQueue';
 
 interface HeaderProps {
   activeProjectCount: number;
@@ -38,17 +43,43 @@ export const Header: React.FC<HeaderProps> = ({
   const [syncing, setSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState('Just now');
   
+  // Offline Data Queue State
+  const [offlineCount, setOfflineCount] = useState(0);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+
   // Global search state
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const handleSync = () => {
+  // Subscribe to IndexedDB Offline Queue and Network changes
+  useEffect(() => {
+    const unsubscribe = offlineQueue.subscribe((count, online) => {
+      setOfflineCount(count);
+      setIsOnline(online);
+    });
+
+    const cleanupAutoSync = offlineQueue.initAutoSync();
+
+    return () => {
+      unsubscribe();
+      cleanupAutoSync();
+    };
+  }, []);
+
+  const handleManualSync = async () => {
     setSyncing(true);
-    setTimeout(() => {
-      setSyncing(false);
+    try {
+      const res = await offlineQueue.syncQueue();
       setLastSyncTime('Just now');
-    }, 1200);
+      if (res.synced > 0) {
+        console.log(`Synced ${res.synced} offline submissions from IndexedDB to database.`);
+      }
+    } finally {
+      setTimeout(() => {
+        setSyncing(false);
+      }, 800);
+    }
   };
 
   // Filter matching items
@@ -234,9 +265,27 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right Toolbar */}
       <div className="flex items-center gap-2 sm:gap-4">
+        {/* Offline Queue Indicator Badge (IndexedDB) */}
+        {offlineCount > 0 ? (
+          <button
+            onClick={handleManualSync}
+            disabled={syncing}
+            className="flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 px-3 py-1.5 rounded-lg text-xs font-bold shadow-xs transition-colors"
+            title="Click to trigger manual push from IndexedDB to server"
+          >
+            <CloudUpload className={`w-3.5 h-3.5 text-amber-700 ${syncing ? 'animate-bounce' : ''}`} />
+            <span>{syncing ? 'Syncing Queue...' : `${offlineCount} Queued Offline (Sync)`}</span>
+          </button>
+        ) : !isOnline ? (
+          <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 text-[#C8202F] px-2.5 py-1.5 rounded-lg text-xs font-semibold">
+            <WifiOff className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Offline Mode</span>
+          </div>
+        ) : null}
+
         {/* Sync Status Button */}
         <button
-          onClick={handleSync}
+          onClick={handleManualSync}
           disabled={syncing}
           className="hidden sm:flex items-center gap-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-700 transition-colors"
           title="Server Sync Status"
