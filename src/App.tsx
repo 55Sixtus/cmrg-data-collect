@@ -36,6 +36,7 @@ export default function App() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [selectedProjectIdForSimulator, setSelectedProjectIdForSimulator] = useState<string>('proj-1');
+  const [forceDemoAccess, setForceDemoAccess] = useState(false);
 
   // Listen to offline synced items from IndexedDB
   useEffect(() => {
@@ -188,10 +189,13 @@ export default function App() {
     );
   }
 
-  if (isSupabaseConfigured && !session) {
+  if (isSupabaseConfigured && !session && !forceDemoAccess) {
     return (
       <div className="min-h-screen flex flex-col justify-between bg-[#F6F7F9]">
-        <LoginScreen onLoginSuccess={() => {}} />
+        <LoginScreen 
+          onLoginSuccess={() => {}} 
+          onContinueAsDemo={() => setForceDemoAccess(true)}
+        />
       </div>
     );
   }
