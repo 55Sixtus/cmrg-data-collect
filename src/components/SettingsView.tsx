@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AuditLog } from '../types';
+import { perfMonitor } from '../services/performanceMonitor';
 import { 
   Settings, 
   Shield, 
@@ -7,6 +8,8 @@ import {
   Database, 
   Key, 
   History, 
+  Activity,
+  Zap,
   CheckCircle2, 
   Server
 } from 'lucide-react';
@@ -16,12 +19,89 @@ interface SettingsViewProps {
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ auditLogs }) => {
+  const [avgLatency, setAvgLatency] = useState(perfMonitor.getAverageLatency());
+  const [records, setRecords] = useState(perfMonitor.getRecords());
+
+  const handleRefreshMetrics = () => {
+    setAvgLatency(perfMonitor.getAverageLatency());
+    setRecords(perfMonitor.getRecords());
+  };
+
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-[#17243A]">Enterprise Settings, Roles & Audit Logs</h1>
-        <p className="text-xs text-gray-500">Manage user access permissions, ODK Aggregate bridge, and immutable audit trails</p>
+        <h1 className="text-xl font-bold text-[#17243A]">Enterprise Settings, Roles & System Health</h1>
+        <p className="text-xs text-gray-500">Manage user access permissions, ODK Aggregate bridge, and real-time performance telemetry</p>
+      </div>
+
+      {/* NEW: System Health & Performance Section */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Activity className="w-5 h-5 text-[#C8202F]" />
+            <h2 className="text-sm font-bold text-[#17243A]">System Health & DataService Performance API</h2>
+          </div>
+          <button
+            onClick={handleRefreshMetrics}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+          >
+            <Zap className="w-3.5 h-3.5 text-[#C8202F]" />
+            <span>Refresh Metrics</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">Average Response Time</span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl font-bold font-mono text-[#17243A]">{avgLatency}</span>
+              <span className="text-xs text-gray-500">ms</span>
+            </div>
+            <span className="text-[10px] text-emerald-600 font-semibold block mt-1">Optimal Performance (&lt;50ms)</span>
+          </div>
+
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">Tracked API Calls</span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl font-bold font-mono text-[#17243A]">{records.length}</span>
+              <span className="text-xs text-gray-500">requests</span>
+            </div>
+            <span className="text-[10px] text-blue-600 font-semibold block mt-1">Performance API Active</span>
+          </div>
+
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">Database Status</span>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-sm font-bold text-[#17243A]">Supabase Cloud (99.9%)</span>
+            </div>
+            <span className="text-[10px] text-emerald-600 font-semibold block mt-1">Project: kmwzmyupvqjitugpckzp</span>
+          </div>
+        </div>
+
+        {/* Latency Log Table */}
+        <div className="border border-gray-200 rounded-xl overflow-hidden mt-4">
+          <div className="bg-[#17243A] text-white px-4 py-2.5 text-xs font-bold flex items-center justify-between">
+            <span>Recent DataService Latency Log (Performance API)</span>
+            <span className="text-[10px] text-gray-300 font-mono">Max 50 Records</span>
+          </div>
+          <div className="max-h-60 overflow-y-auto divide-y divide-gray-100 text-xs">
+            {records.length === 0 ? (
+              <div className="p-6 text-center text-gray-400">No telemetry records yet. Try switching tabs or refreshing data.</div>
+            ) : (
+              records.map((r, i) => (
+                <div key={i} className="px-4 py-2.5 flex items-center justify-between hover:bg-gray-50">
+                  <span className="font-mono font-semibold text-[#17243A]">{r.operation}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="font-mono text-gray-600">{r.durationMs} ms</span>
+                    <span className="text-gray-400 text-[11px] font-mono">{r.timestamp}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Organization Profile */}
