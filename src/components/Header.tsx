@@ -1,16 +1,47 @@
-import React, { useState } from 'react';
-import { ShieldCheck, Bell, Search, RefreshCw, User, LogOut, Menu, CheckCircle2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  ShieldCheck, 
+  Bell, 
+  Search, 
+  RefreshCw, 
+  User, 
+  LogOut, 
+  Menu, 
+  FolderKanban, 
+  Users, 
+  FileSpreadsheet, 
+  ArrowRight,
+  X
+} from 'lucide-react';
+import { Project, Submission, Enumerator, TabType } from '../types';
 
 interface HeaderProps {
   activeProjectCount: number;
+  projects: Project[];
+  submissions: Submission[];
+  enumerators: Enumerator[];
   onSignOut: () => void;
   onToggleSidebar: () => void;
+  onNavigateTab: (tab: TabType) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeProjectCount, onSignOut, onToggleSidebar }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+  activeProjectCount, 
+  projects, 
+  submissions, 
+  enumerators, 
+  onSignOut, 
+  onToggleSidebar,
+  onNavigateTab
+}) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState('Just now');
+  
+  // Global search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const handleSync = () => {
     setSyncing(true);
@@ -19,6 +50,25 @@ export const Header: React.FC<HeaderProps> = ({ activeProjectCount, onSignOut, o
       setLastSyncTime('Just now');
     }, 1200);
   };
+
+  // Filter matching items
+  const query = searchQuery.toLowerCase().trim();
+  const matchingProjects = query ? projects.filter(p => p.title.toLowerCase().includes(query) || p.code.toLowerCase().includes(query) || p.client.toLowerCase().includes(query)) : [];
+  const matchingSubmissions = query ? submissions.filter(s => s.enumeratorName.toLowerCase().includes(query) || s.id.toLowerCase().includes(query) || s.state.toLowerCase().includes(query) || s.lga.toLowerCase().includes(query)) : [];
+  const matchingEnumerators = query ? enumerators.filter(e => e.name.toLowerCase().includes(query) || e.id.toLowerCase().includes(query) || e.state.toLowerCase().includes(query)) : [];
+
+  const hasResults = matchingProjects.length > 0 || matchingSubmissions.length > 0 || matchingEnumerators.length > 0;
+
+  // Close search dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setIsSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40 px-4 sm:px-6 py-3.5 flex items-center justify-between shadow-xs">
@@ -56,16 +106,130 @@ export const Header: React.FC<HeaderProps> = ({ activeProjectCount, onSignOut, o
         </div>
       </div>
 
-      {/* Global Search */}
-      <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
+      {/* Global Search Bar with Live Dropdown */}
+      <div className="hidden md:flex items-center flex-1 max-w-md mx-8 relative" ref={searchRef}>
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search surveys, enumerators, LGAs, or submissions (Ctrl+K)..."
-            className="w-full bg-[#F6F7F9] border border-gray-200 rounded-lg pl-9 pr-4 py-2 text-xs text-[#1B2430] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C8202F]/20 focus:border-[#C8202F] transition-all"
+            placeholder="Search projects, submissions, enumerators, LGAs (Ctrl+K)..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setIsSearchFocused(true);
+            }}
+            onFocus={() => setIsSearchFocused(true)}
+            className="w-full bg-[#F6F7F9] border border-gray-200 rounded-lg pl-9 pr-9 py-2 text-xs text-[#1B2430] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C8202F]/20 focus:border-[#C8202F] transition-all"
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
+
+        {/* Live Search Results Dropdown */}
+        {isSearchFocused && query && (
+          <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 overflow-hidden max-h-96 overflow-y-auto divide-y divide-gray-100">
+            {!hasResults ? (
+              <div className="p-6 text-center text-gray-500 text-xs">
+                No matching research records found for "{searchQuery}".
+              </div>
+            ) : (
+              <div className="p-2 space-y-3">
+                {/* Projects Section */}
+                {matchingProjects.length > 0 && (
+                  <div>
+                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-50 rounded-md">
+                      Projects ({matchingProjects.length})
+                    </div>
+                    {matchingProjects.map(p => (
+                      <div
+                        key={p.id}
+                        onClick={() => {
+                          onNavigateTab('projects');
+                          setIsSearchFocused(false);
+                          setSearchQuery('');
+                        }}
+                        className="px-3 py-2 hover:bg-red-50/50 rounded-lg cursor-pointer transition-colors flex items-center justify-between group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <FolderKanban className="w-4 h-4 text-[#C8202F]" />
+                          <div>
+                            <p className="text-xs font-bold text-[#17243A] group-hover:text-[#C8202F] transition-colors">{p.title}</p>
+                            <span className="text-[10px] text-gray-500">{p.code} • {p.client}</span>
+                          </div>
+                        </div>
+                        <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#C8202F]" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Submissions Section */}
+                {matchingSubmissions.length > 0 && (
+                  <div>
+                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-50 rounded-md">
+                      Submissions ({matchingSubmissions.length})
+                    </div>
+                    {matchingSubmissions.map(s => (
+                      <div
+                        key={s.id}
+                        onClick={() => {
+                          onNavigateTab('quality');
+                          setIsSearchFocused(false);
+                          setSearchQuery('');
+                        }}
+                        className="px-3 py-2 hover:bg-red-50/50 rounded-lg cursor-pointer transition-colors flex items-center justify-between group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                          <div>
+                            <p className="text-xs font-bold text-[#17243A] group-hover:text-[#C8202F] transition-colors">{s.enumeratorName} ({s.id})</p>
+                            <span className="text-[10px] text-gray-500">{s.state}, {s.lga} • {s.status}</span>
+                          </div>
+                        </div>
+                        <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#C8202F]" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Enumerators Section */}
+                {matchingEnumerators.length > 0 && (
+                  <div>
+                    <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-50 rounded-md">
+                      Enumerators ({matchingEnumerators.length})
+                    </div>
+                    {matchingEnumerators.map(e => (
+                      <div
+                        key={e.id}
+                        onClick={() => {
+                          onNavigateTab('enumerators');
+                          setIsSearchFocused(false);
+                          setSearchQuery('');
+                        }}
+                        className="px-3 py-2 hover:bg-red-50/50 rounded-lg cursor-pointer transition-colors flex items-center justify-between group"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Users className="w-4 h-4 text-blue-600" />
+                          <div>
+                            <p className="text-xs font-bold text-[#17243A] group-hover:text-[#C8202F] transition-colors">{e.name} ({e.id})</p>
+                            <span className="text-[10px] text-gray-500">{e.state} State • {e.status}</span>
+                          </div>
+                        </div>
+                        <ArrowRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#C8202F]" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Right Toolbar */}

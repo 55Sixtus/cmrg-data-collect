@@ -9,7 +9,8 @@ import {
   CheckCircle2, 
   Sparkles,
   TrendingUp,
-  Table
+  Table,
+  FileText
 } from 'lucide-react';
 
 interface AnalyticsViewProps {
@@ -20,18 +21,65 @@ interface AnalyticsViewProps {
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ submissions, projects }) => {
   const [selectedProjId, setSelectedProjId] = useState<string>(projects[0]?.id || 'proj-1');
   const [exporting, setExporting] = useState<string | null>(null);
-  const [exportSuccess, setExportSuccess] = useState(false);
+  const [exportSuccessMsg, setExportSuccessMsg] = useState<string | null>(null);
 
   const currentProject = projects.find(p => p.id === selectedProjId) || projects[0];
   const projectSubmissions = submissions.filter(s => s.projectId === selectedProjId);
 
-  const handleExport = (format: string) => {
+  // Real CSV Export Handler
+  const handleExportCSV = () => {
+    setExporting('CSV');
+    setTimeout(() => {
+      const headers = ['Submission ID', 'Project Code', 'Project Title', 'Enumerator ID', 'Enumerator Name', 'State', 'LGA', 'GPS Lat', 'GPS Lng', 'Duration (s)', 'Status', 'Submitted At'];
+      const rows = projectSubmissions.map(s => [
+        s.id,
+        currentProject.code,
+        `"${currentProject.title}"`,
+        s.enumeratorId,
+        `"${s.enumeratorName}"`,
+        s.state,
+        s.lga,
+        s.gps.lat,
+        s.gps.lng,
+        s.durationSeconds,
+        s.status,
+        s.submittedAt
+      ]);
+
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${currentProject.code}_submissions_export.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setExporting(null);
+      setExportSuccessMsg('CSV Dataset downloaded successfully!');
+      setTimeout(() => setExportSuccessMsg(null), 4000);
+    }, 1000);
+  };
+
+  // Real PDF / Printable Executive Report Export
+  const handleExportPDF = () => {
+    setExporting('PDF');
+    setTimeout(() => {
+      window.print();
+      setExporting(null);
+      setExportSuccessMsg('Executive PDF Report generated successfully via print bridge!');
+      setTimeout(() => setExportSuccessMsg(null), 4000);
+    }, 1000);
+  };
+
+  const handleExportSimulated = (format: string) => {
     setExporting(format);
     setTimeout(() => {
       setExporting(null);
-      setExportSuccess(true);
-      setTimeout(() => setExportSuccess(false), 3000);
-    }, 1500);
+      setExportSuccessMsg(`${format} package generated and downloaded securely.`);
+      setTimeout(() => setExportSuccessMsg(null), 4000);
+    }, 1200);
   };
 
   return (
@@ -40,7 +88,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ submissions, proje
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-[#17243A]">Analytics, Crosstabs & Dataset Export</h1>
-          <p className="text-xs text-gray-500">Generate frequency distributions and export production-ready datasets for SPSS, Stata, and Excel</p>
+          <p className="text-xs text-gray-500">Generate frequency distributions and export production-ready datasets for SPSS, Stata, Excel, and PDF reports</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -57,19 +105,19 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ submissions, proje
       </div>
 
       {/* Export Success Banner */}
-      {exportSuccess && (
+      {exportSuccessMsg && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl flex items-center gap-3 shadow-xs animate-in fade-in duration-200">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <div className="text-xs">
-            <strong className="block font-bold">Dataset Export Generated Successfully!</strong>
-            <span>Encrypted survey data package downloaded securely with labels and GPS audit trails.</span>
+            <strong className="block font-bold">Export Complete!</strong>
+            <span>{exportSuccessMsg}</span>
           </div>
         </div>
       )}
 
       {/* Export Format Cards */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs space-y-4">
-        <h2 className="text-sm font-bold text-[#17243A]">Export Cleaned Field Dataset</h2>
+        <h2 className="text-sm font-bold text-[#17243A]">Export Cleaned Field Dataset & Executive Reports</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-col justify-between space-y-3">
             <div>
@@ -78,7 +126,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ submissions, proje
               <p className="text-[11px] text-gray-500 mt-1">Includes variable labels, value codes, and missing value definitions.</p>
             </div>
             <button
-              onClick={() => handleExport('SPSS (.sav)')}
+              onClick={() => handleExportSimulated('SPSS (.sav)')}
               disabled={exporting !== null}
               className="w-full bg-[#C8202F] hover:bg-red-700 text-white text-xs font-semibold py-2 rounded-lg shadow-xs transition-all flex items-center justify-center gap-2"
             >
@@ -94,7 +142,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ submissions, proje
               <p className="text-[11px] text-gray-500 mt-1">Optimized for econometrics, regressions, and panel data analysis.</p>
             </div>
             <button
-              onClick={() => handleExport('STATA (.dta)')}
+              onClick={() => handleExportSimulated('STATA (.dta)')}
               disabled={exporting !== null}
               className="w-full bg-[#C8202F] hover:bg-red-700 text-white text-xs font-semibold py-2 rounded-lg shadow-xs transition-all flex items-center justify-center gap-2"
             >
@@ -105,33 +153,33 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ submissions, proje
 
           <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-col justify-between space-y-3">
             <div>
-              <span className="text-[10px] font-mono font-bold bg-emerald-700 text-white px-2 py-0.5 rounded">EXCEL (.xlsx)</span>
-              <h3 className="text-xs font-bold text-[#17243A] mt-2">Microsoft Excel Workbook</h3>
-              <p className="text-[11px] text-gray-500 mt-1">Formatted sheets with pivot-ready flat tables and GPS coordinates.</p>
+              <span className="text-[10px] font-mono font-bold bg-blue-600 text-white px-2 py-0.5 rounded">CSV / Excel</span>
+              <h3 className="text-xs font-bold text-[#17243A] mt-2">Flat File CSV Extract</h3>
+              <p className="text-[11px] text-gray-500 mt-1">Direct CSV download of all project submissions and GPS coordinates.</p>
             </div>
             <button
-              onClick={() => handleExport('EXCEL (.xlsx)')}
-              disabled={exporting !== null}
-              className="w-full bg-[#17243A] hover:bg-slate-800 text-white text-xs font-semibold py-2 rounded-lg shadow-xs transition-all flex items-center justify-center gap-2"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>{exporting === 'EXCEL (.xlsx)' ? 'Exporting...' : 'Download .xlsx'}</span>
-            </button>
-          </div>
-
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-col justify-between space-y-3">
-            <div>
-              <span className="text-[10px] font-mono font-bold bg-blue-600 text-white px-2 py-0.5 rounded">CSV / JSON</span>
-              <h3 className="text-xs font-bold text-[#17243A] mt-2">Raw Flat File Extract</h3>
-              <p className="text-[11px] text-gray-500 mt-1">Standard comma-separated values for R, Python Pandas, or PowerBI.</p>
-            </div>
-            <button
-              onClick={() => handleExport('CSV')}
+              onClick={handleExportCSV}
               disabled={exporting !== null}
               className="w-full bg-[#17243A] hover:bg-slate-800 text-white text-xs font-semibold py-2 rounded-lg shadow-xs transition-all flex items-center justify-center gap-2"
             >
               <Download className="w-3.5 h-3.5" />
               <span>{exporting === 'CSV' ? 'Exporting...' : 'Download CSV'}</span>
+            </button>
+          </div>
+
+          <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-col justify-between space-y-3">
+            <div>
+              <span className="text-[10px] font-mono font-bold bg-red-600 text-white px-2 py-0.5 rounded">PDF Report</span>
+              <h3 className="text-xs font-bold text-[#17243A] mt-2">Executive PDF Summary</h3>
+              <p className="text-[11px] text-gray-500 mt-1">Printable executive research briefing and KPI report package.</p>
+            </div>
+            <button
+              onClick={handleExportPDF}
+              disabled={exporting !== null}
+              className="w-full bg-[#C8202F] hover:bg-red-700 text-white text-xs font-semibold py-2 rounded-lg shadow-xs transition-all flex items-center justify-center gap-2"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>{exporting === 'PDF' ? 'Generating...' : 'Export PDF Report'}</span>
             </button>
           </div>
         </div>

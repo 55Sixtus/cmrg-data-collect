@@ -184,8 +184,12 @@ export default function App() {
     <div className="min-h-screen bg-[#F6F7F9] flex flex-col font-sans text-[#1B2430]">
       <Header 
         activeProjectCount={projects.filter(p => p.status === 'Active').length} 
+        projects={projects}
+        submissions={submissions}
+        enumerators={enumerators}
         onSignOut={() => supabase?.auth.signOut()} 
         onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+        onNavigateTab={(tab) => setActiveTab(tab)}
       />
 
       {isDemo && !isSupabaseConfigured && (
