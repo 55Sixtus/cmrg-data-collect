@@ -6,7 +6,57 @@ export type TabType =
   | 'quality'
   | 'enumerators'
   | 'analytics'
+  | 'deployments'
   | 'settings';
+
+export interface FieldDeployment {
+  id: string;
+  name: string;
+  projectId: string;
+  projectCode: string;
+  projectTitle: string;
+  targetRegion: string;
+  targetInterviews: number;
+  completedInterviews: number;
+  assignedEnumerators: number;
+  startDate: string;
+  endDate: string;
+  retentionPeriod: '30_days' | '90_days' | '180_days' | '1_year' | '3_years' | '5_years' | 'permanent';
+  retentionExpiryDate: string;
+  status: 'Active' | 'Scheduled' | 'Completed' | 'Archived';
+  deploymentVersion: string;
+  supervisorName: string;
+  offlineSyncAllowed: boolean;
+  notes?: string;
+}
+
+export interface RetentionPolicy {
+  id: string;
+  title: string;
+  description: string;
+  category: 'Survey Submissions' | 'Audio Recordings' | 'GPS Traces & PII' | 'Flagged & Rejected' | 'Cloud Build Artifacts';
+  retentionDurationDays: number;
+  retentionLabel: string;
+  action: 'Archive to Cold Storage' | 'Anonymize PII' | 'Purge Permanently' | 'Prune Cached Builds';
+  enabled: boolean;
+  lastExecuted: string;
+  affectedCount: number;
+  complianceStandard: 'NDPR (Nigeria)' | 'GDPR Art. 5(1)(e)' | 'ISO/IEC 27001' | 'CMRG Ethics Code';
+}
+
+export interface CloudDeploymentRecord {
+  id: string;
+  deploymentUrl: string;
+  environment: 'Production' | 'Preview' | 'Staging';
+  branch: string;
+  commitHash: string;
+  commitMessage: string;
+  status: 'Ready' | 'Building' | 'Failed';
+  createdAt: string;
+  retentionStatus: 'Retained (Protected)' | 'Retained (90 Days)' | 'Retained (30 Days)';
+  buildDuration: string;
+  author: string;
+}
 
 export interface Project {
   id: string;

@@ -11,7 +11,10 @@ import {
   Activity,
   Zap,
   CheckCircle2, 
-  Server
+  Server,
+  Rocket,
+  Cloud,
+  Lock
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -143,6 +146,40 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ auditLogs }) => {
               value="AES-256 Cloud SQL PostgreSQL with Automated Geo-Redundancy"
               className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-gray-700 font-medium"
             />
+          </div>
+        </div>
+      </div>
+
+      {/* Cloud Deployment & Retention Policy Architecture */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Cloud className="w-5 h-5 text-[#C8202F]" />
+            <h2 className="text-sm font-bold text-[#17243A]">Cloud Deployment & Retention Policy Architecture</h2>
+          </div>
+          <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
+            <Lock className="w-3 h-3 text-emerald-600" />
+            Production Retention Locked
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
+            <span className="font-semibold text-gray-500 text-[11px] block">Production URL</span>
+            <span className="font-mono font-bold text-[#17243A] block mt-0.5">cmrg-data-collect.vercel.app</span>
+            <span className="text-[10px] text-emerald-600 font-medium mt-1 block">Vercel Build Cache Active</span>
+          </div>
+
+          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
+            <span className="font-semibold text-gray-500 text-[11px] block">Vercel Deployment Retention</span>
+            <span className="font-mono font-bold text-[#17243A] block mt-0.5">Prod: Unlimited / Preview: 30d</span>
+            <span className="text-[10px] text-blue-600 font-medium mt-1 block">Rollback Snapshots Preserved</span>
+          </div>
+
+          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
+            <span className="font-semibold text-gray-500 text-[11px] block">Regulatory Retention Standard</span>
+            <span className="font-mono font-bold text-[#17243A] block mt-0.5">NDPR & GDPR Art. 5(1)(e)</span>
+            <span className="text-[10px] text-purple-600 font-medium mt-1 block">Automated Archival Daemon</span>
           </div>
         </div>
       </div>

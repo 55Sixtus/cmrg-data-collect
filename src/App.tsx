@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { TabType, Project, Questionnaire, Submission, Enumerator, AuditLog } from './types';
+import { TabType, Project, Questionnaire, Submission, Enumerator, AuditLog, FieldDeployment, RetentionPolicy, CloudDeploymentRecord } from './types';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { DataService } from './services/dataService';
-import { INITIAL_QUESTIONNAIRES } from './mockData';
+import { INITIAL_QUESTIONNAIRES, INITIAL_FIELD_DEPLOYMENTS, INITIAL_RETENTION_POLICIES, INITIAL_CLOUD_DEPLOYMENTS } from './mockData';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
@@ -12,8 +12,10 @@ import { FormSimulator } from './components/FormSimulator';
 import { QualityControl } from './components/QualityControl';
 import { EnumeratorsView } from './components/EnumeratorsView';
 import { AnalyticsView } from './components/AnalyticsView';
+import { DeploymentRetentionView } from './components/DeploymentRetentionView';
 import { SettingsView } from './components/SettingsView';
 import { LoginScreen } from './components/LoginScreen';
+import { LandingPage } from './components/LandingPage';
 import { Footer } from './components/Footer';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { offlineQueue } from './services/offlineQueue';
@@ -22,6 +24,7 @@ export default function App() {
   const [session, setSession] = useState<any>(null);
   const [authChecking, setAuthChecking] = useState(true);
 
+  const [currentView, setCurrentView] = useState<'landing' | 'app' | 'login'>('landing');
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -30,6 +33,10 @@ export default function App() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [enumerators, setEnumerators] = useState<Enumerator[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  
+  const [fieldDeployments, setFieldDeployments] = useState<FieldDeployment[]>(INITIAL_FIELD_DEPLOYMENTS);
+  const [retentionPolicies, setRetentionPolicies] = useState<RetentionPolicy[]>(INITIAL_RETENTION_POLICIES);
+  const [cloudDeployments, setCloudDeployments] = useState<CloudDeploymentRecord[]>(INITIAL_CLOUD_DEPLOYMENTS);
   
   const [loading, setLoading] = useState(true);
   const [isDemo, setIsDemo] = useState(true);
@@ -177,24 +184,113 @@ export default function App() {
     setActiveTab('simulator');
   };
 
-  if (authChecking) {
+  const handleAddFieldDeployment = (newDep: FieldDeployment) => {
+    setFieldDeployments(prev => [newDep, ...prev]);
+    const newLog: AuditLog = {
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: 'Dr. Tunde Fashola (Admin)',
+      action: 'Field Deployment Created',
+      details: `Initialized wave "${newDep.name}" (${newDep.targetRegion}) with retention period ${newDep.retentionPeriod}`,
+      ip: '197.210.44.12'
+    };
+    setAuditLogs(prev => [newLog, ...prev]);
+  };
+
+  const handleToggleRetentionPolicy = (policyId: string) => {
+    setRetentionPolicies(prev => prev.map(p => {
+      if (p.id === policyId) {
+        const nextState = !p.enabled;
+        const newLog: AuditLog = {
+          id: `log-${Date.now()}`,
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+          user: 'Dr. Tunde Fashola (Admin)',
+          action: 'Retention Policy Modified',
+          details: `Policy "${p.title}" status changed to ${nextState ? 'ACTIVE' : 'DISABLED'}`,
+          ip: '197.210.44.12'
+        };
+        setAuditLogs(curr => [newLog, ...curr]);
+        return { ...p, enabled: nextState };
+      }
+      return p;
+    }));
+  };
+
+  const handleExecuteRetentionPolicy = (policyId: string) => {
+    setRetentionPolicies(prev => prev.map(p => {
+      if (p.id === policyId) {
+        const now = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+        const newLog: AuditLog = {
+          id: `log-${Date.now()}`,
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+          user: 'System Retention Daemon',
+          action: 'Retention Schedule Executed',
+          details: `Enforced policy "${p.title}" on ${p.affectedCount} matching records. Action: ${p.action}`,
+          ip: '127.0.0.1'
+        };
+        setAuditLogs(curr => [newLog, ...curr]);
+        return { ...p, lastExecuted: now };
+      }
+      return p;
+    }));
+  };
+
+  const handleTriggerCloudDeployment = (env: 'Production' | 'Preview') => {
+    const hash = Math.random().toString(16).substring(2, 9);
+    const newRecord: CloudDeploymentRecord = {
+      id: `dpl-${Date.now()}`,
+      deploymentUrl: env === 'Production' ? 'https://cmrg-data-collect.vercel.app' : `https://cmrg-data-collect-${hash}.vercel.app`,
+      environment: env,
+      branch: env === 'Production' ? 'main' : 'feat/wave-sync',
+      commitHash: hash,
+      commitMessage: env === 'Production' ? 'Production release with Vercel build cache retention' : 'Preview branch verification',
+      status: 'Ready',
+      createdAt: 'Just now',
+      retentionStatus: env === 'Production' ? 'Retained (Protected)' : 'Retained (30 Days)',
+      buildDuration: '36s (Vercel Build Cache Reused)',
+      author: 'Dr. Tunde Fashola (Admin)'
+    };
+    setCloudDeployments(prev => [newRecord, ...prev]);
+    const newLog: AuditLog = {
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: 'Dr. Tunde Fashola (Admin)',
+      action: 'Cloud Deployment Triggered',
+      details: `Vercel ${env} release created (${newRecord.commitHash}) with ${newRecord.retentionStatus}`,
+      ip: '197.210.44.12'
+    };
+    setAuditLogs(prev => [newLog, ...prev]);
+  };
+
+  if (currentView === 'landing') {
     return (
-      <div className="min-h-screen bg-[#F6F7F9] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 bg-[#17243A] text-white rounded-2xl flex items-center justify-center shadow-lg mb-4">
-          <Loader2 className="w-8 h-8 animate-spin text-[#C8202F]" />
-        </div>
-        <h2 className="text-lg font-bold text-[#17243A]">Verifying Supabase Authentication Session...</h2>
-        <p className="text-xs text-gray-500 mt-1">Connecting securely to CMRG project kmwzmyupvqjitugpckzp.</p>
-      </div>
+      <LandingPage 
+        onOpenLogin={() => setCurrentView('login')} 
+        onContinueAsDemo={() => {
+          setForceDemoAccess(true);
+          setCurrentView('app');
+        }}
+      />
     );
   }
 
-  if (isSupabaseConfigured && !session && !forceDemoAccess) {
+  if (currentView === 'login' || (isSupabaseConfigured && !session && !forceDemoAccess)) {
     return (
       <div className="min-h-screen flex flex-col justify-between bg-[#F6F7F9]">
+        <div className="p-4 bg-white border-b border-gray-200 flex items-center justify-between">
+          <button 
+            onClick={() => setCurrentView('landing')}
+            className="text-xs font-bold text-[#E30620] hover:underline flex items-center gap-1"
+          >
+            ← Back to CMRG Landing Page
+          </button>
+        </div>
         <LoginScreen 
-          onLoginSuccess={() => {}} 
-          onContinueAsDemo={() => setForceDemoAccess(true)}
+          onLoginSuccess={() => setCurrentView('app')} 
+          onContinueAsDemo={() => {
+            setForceDemoAccess(true);
+            setCurrentView('app');
+          }}
         />
       </div>
     );
@@ -312,6 +408,19 @@ export default function App() {
 
             {activeTab === 'analytics' && (
               <AnalyticsView submissions={submissions} projects={projects} />
+            )}
+
+            {activeTab === 'deployments' && (
+              <DeploymentRetentionView
+                projects={projects}
+                fieldDeployments={fieldDeployments}
+                onAddFieldDeployment={handleAddFieldDeployment}
+                retentionPolicies={retentionPolicies}
+                onToggleRetentionPolicy={handleToggleRetentionPolicy}
+                onExecuteRetentionPolicy={handleExecuteRetentionPolicy}
+                cloudDeployments={cloudDeployments}
+                onTriggerCloudDeployment={handleTriggerCloudDeployment}
+              />
             )}
 
             {activeTab === 'settings' && (

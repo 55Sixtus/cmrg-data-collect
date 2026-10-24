@@ -11,7 +11,8 @@ import {
   Settings,
   Database,
   Smartphone,
-  Wrench
+  Wrench,
+  Rocket
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -29,6 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, flagg
     { id: 'quality', label: 'Quality & Audit', icon: <ShieldAlert className="w-4 h-4" />, badge: flaggedCount },
     { id: 'enumerators', label: 'Field Enumerators', icon: <Users className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics & Crosstabs', icon: <BarChart3 className="w-4 h-4" /> },
+    { id: 'deployments', label: 'Deployments & Retention', icon: <Rocket className="w-4 h-4" /> },
     { id: 'settings', label: 'System & Roles', icon: <Settings className="w-4 h-4" /> }
   ];
 

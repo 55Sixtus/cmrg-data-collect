@@ -1,4 +1,4 @@
-import { Project, Questionnaire, Submission, Enumerator, AuditLog } from './types';
+import { Project, Questionnaire, Submission, Enumerator, AuditLog, FieldDeployment, RetentionPolicy, CloudDeploymentRecord } from './types';
 
 export const INITIAL_PROJECTS: Project[] = [
   {
@@ -265,4 +265,197 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
   { id: 'log-2', timestamp: '2026-10-21 13:10:45', user: 'Hauwa Ibrahim (Supervisor)', action: 'Submission Approved', details: 'Approved submission sub-8921 for Lagos cluster', ip: '105.112.180.5' },
   { id: 'log-3', timestamp: '2026-10-21 11:40:12', user: 'System Quality Engine', action: 'Flagged Submission', details: 'Flagged sub-8922 for potential speeding violation (184s)', ip: '127.0.0.1' },
   { id: 'log-4', timestamp: '2026-10-21 09:15:00', user: 'Dr. Tunde Fashola (Admin)', action: 'Enumerator Assigned', details: 'Assigned ENU-104 to Lagos Retail Hub', ip: '197.210.44.12' }
+];
+
+export const INITIAL_FIELD_DEPLOYMENTS: FieldDeployment[] = [
+  {
+    id: 'dep-1',
+    name: 'South-West Mega Retail Audit Wave 1',
+    projectId: 'proj-1',
+    projectCode: 'CMRG-CPI-2026-Q3',
+    projectTitle: 'National Consumer Goods Price Index Q3',
+    targetRegion: 'Lagos, Oyo, Ogun',
+    targetInterviews: 2800,
+    completedInterviews: 2450,
+    assignedEnumerators: 42,
+    startDate: '2026-09-01',
+    endDate: '2026-11-15',
+    retentionPeriod: '3_years',
+    retentionExpiryDate: '2029-11-15',
+    status: 'Active',
+    deploymentVersion: 'v2.4-prod',
+    supervisorName: 'Hauwa Ibrahim',
+    offlineSyncAllowed: true,
+    notes: 'High-frequency FMCG audit across Mile 12, Bodija, and Balogun open markets.'
+  },
+  {
+    id: 'dep-2',
+    name: 'Kano & Kaduna Urban Consumer Wave',
+    projectId: 'proj-3',
+    projectCode: 'CMRG-FMCG-BHU-09',
+    projectTitle: 'FMCG Brand Health & Usage Survey',
+    targetRegion: 'Kano, Kaduna',
+    targetInterviews: 2000,
+    completedInterviews: 1820,
+    assignedEnumerators: 30,
+    startDate: '2026-09-15',
+    endDate: '2026-11-01',
+    retentionPeriod: '1_year',
+    retentionExpiryDate: '2027-11-01',
+    status: 'Active',
+    deploymentVersion: 'v1.8-field',
+    supervisorName: 'Musa Garba',
+    offlineSyncAllowed: true,
+    notes: 'Door-to-door consumer usage interviews with audio audit verification.'
+  },
+  {
+    id: 'dep-3',
+    name: 'Lagos Metro Public Opinion Polling Wave 2',
+    projectId: 'proj-2',
+    projectCode: 'CMRG-POT-LAG-02',
+    projectTitle: 'Lagos Metropolitan Public Opinion & Governance',
+    targetRegion: 'Lagos Island, Ikeja, Eti-Osa',
+    targetInterviews: 2500,
+    completedInterviews: 2150,
+    assignedEnumerators: 50,
+    startDate: '2026-10-01',
+    endDate: '2026-10-31',
+    retentionPeriod: '5_years',
+    retentionExpiryDate: '2031-10-31',
+    status: 'Active',
+    deploymentVersion: 'v2.1',
+    supervisorName: 'Bolanle Peters',
+    offlineSyncAllowed: true,
+    notes: 'Citizen satisfaction interviews with biometric and GPS geofence checks.'
+  },
+  {
+    id: 'dep-4',
+    name: 'North-West Health Facility Rapid Assessment',
+    projectId: 'proj-4',
+    projectCode: 'CMRG-RHS-KATS-04',
+    projectTitle: 'Rural Healthcare Access & Immunization Audit',
+    targetRegion: 'Katsina, Sokoto, Zamfara',
+    targetInterviews: 1800,
+    completedInterviews: 1780,
+    assignedEnumerators: 28,
+    startDate: '2026-08-01',
+    endDate: '2026-10-15',
+    retentionPeriod: '5_years',
+    retentionExpiryDate: '2031-10-15',
+    status: 'Completed',
+    deploymentVersion: 'v1.4',
+    supervisorName: 'Dr. Kabir Sani',
+    offlineSyncAllowed: true,
+    notes: 'Clinical cold-chain verification dataset; retained under Global Health regulatory archive.'
+  }
+];
+
+export const INITIAL_RETENTION_POLICIES: RetentionPolicy[] = [
+  {
+    id: 'ret-1',
+    title: 'Standard Research Survey Data Retention',
+    description: 'Keep approved market research interviews active in primary database for longitudinal trend analysis, then transfer to cold encrypted storage.',
+    category: 'Survey Submissions',
+    retentionDurationDays: 365,
+    retentionLabel: '1 Year Active (Then Archive)',
+    action: 'Archive to Cold Storage',
+    enabled: true,
+    lastExecuted: '2026-10-20 03:00 UTC',
+    affectedCount: 3842,
+    complianceStandard: 'ISO/IEC 27001'
+  },
+  {
+    id: 'ret-2',
+    title: 'Enumerator Audio Quality Audit Retention',
+    description: 'Retain background audio recordings and quality control check audio for 90 days after project sign-off, then permanently prune audio files while preserving interview responses.',
+    category: 'Audio Recordings',
+    retentionDurationDays: 90,
+    retentionLabel: '90 Days Post-Audit',
+    action: 'Purge Permanently',
+    enabled: true,
+    lastExecuted: '2026-10-18 02:30 UTC',
+    affectedCount: 512,
+    complianceStandard: 'CMRG Ethics Code'
+  },
+  {
+    id: 'ret-3',
+    title: 'Respondent PII & Precision GPS De-Identification',
+    description: 'Automatically mask telephone numbers, respondent names, and truncate GPS coordinates to 2 decimal places after quality verification to prevent re-identification.',
+    category: 'GPS Traces & PII',
+    retentionDurationDays: 180,
+    retentionLabel: '180 Days (Anonymization)',
+    action: 'Anonymize PII',
+    enabled: true,
+    lastExecuted: '2026-10-15 04:00 UTC',
+    affectedCount: 1420,
+    complianceStandard: 'NDPR (Nigeria)'
+  },
+  {
+    id: 'ret-4',
+    title: 'Flagged, Speeding & Duplicate Submission Purge',
+    description: 'Permanently remove rejected submissions, speeding violations (<120s), and fraudulent duplicates after a 30-day review dispute window.',
+    category: 'Flagged & Rejected',
+    retentionDurationDays: 30,
+    retentionLabel: '30 Days Review Grace',
+    action: 'Purge Permanently',
+    enabled: true,
+    lastExecuted: '2026-10-21 00:00 UTC',
+    affectedCount: 265,
+    complianceStandard: 'GDPR Art. 5(1)(e)'
+  },
+  {
+    id: 'ret-5',
+    title: 'Vercel Preview Deployments & Build Cache Retention',
+    description: 'Maintain Vercel preview branch deployments for 30 days while locking production deployments indefinitely. Enable Build Cache reuse across deploys.',
+    category: 'Cloud Build Artifacts',
+    retentionDurationDays: 30,
+    retentionLabel: '30 Days (Production Protected)',
+    action: 'Prune Cached Builds',
+    enabled: true,
+    lastExecuted: '2026-10-22 01:15 UTC',
+    affectedCount: 18,
+    complianceStandard: 'ISO/IEC 27001'
+  }
+];
+
+export const INITIAL_CLOUD_DEPLOYMENTS: CloudDeploymentRecord[] = [
+  {
+    id: 'dpl-prod-01',
+    deploymentUrl: 'https://cmrg-data-collect.vercel.app',
+    environment: 'Production',
+    branch: 'main',
+    commitHash: '9a8f2e1',
+    commitMessage: 'Production release: Offline Queue IndexedDB & Supabase fallback sync',
+    status: 'Ready',
+    createdAt: '2026-10-22 18:42 UTC',
+    retentionStatus: 'Retained (Protected)',
+    buildDuration: '42s (Vercel Build Cache Used)',
+    author: 'Sixtus Tech Hub'
+  },
+  {
+    id: 'dpl-prev-02',
+    deploymentUrl: 'https://cmrg-data-collect-git-preview.vercel.app',
+    environment: 'Preview',
+    branch: 'feat/field-sync-engine',
+    commitHash: '7c3b1d0',
+    commitMessage: 'Add background audio audit & GPS geofencing verification',
+    status: 'Ready',
+    createdAt: '2026-10-21 14:10 UTC',
+    retentionStatus: 'Retained (90 Days)',
+    buildDuration: '38s (Build Cache Hit)',
+    author: 'Sixtus Tech Hub'
+  },
+  {
+    id: 'dpl-prev-03',
+    deploymentUrl: 'https://cmrg-data-collect-git-staging.vercel.app',
+    environment: 'Staging',
+    branch: 'staging',
+    commitHash: '5e4d9c2',
+    commitMessage: 'Staging environment test: Supabase kmwzmyupvqjitugpckzp integration',
+    status: 'Ready',
+    createdAt: '2026-10-20 09:30 UTC',
+    retentionStatus: 'Retained (30 Days)',
+    buildDuration: '45s',
+    author: 'Lead Research DevOps'
+  }
 ];
