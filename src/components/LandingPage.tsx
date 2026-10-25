@@ -38,25 +38,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
       {/* HEADER */}
       <header className="bg-white text-[#111827] border-b border-gray-200 sticky top-0 z-50 px-4 sm:px-8 py-4 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3">
-          {/* Official CMRG red square grid logo homage */}
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveSection('home')}>
-            <div className="grid grid-cols-4 gap-0.5 bg-[#E30620] p-1.5 rounded-sm shadow-xs">
-              <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-              <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-              <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-              <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-              <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-              <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-              <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-              <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-[#080B10] text-base sm:text-lg tracking-tight">CMRG <span className="text-[#E30620]">Ltd.</span></span>
-                <span className="text-[10px] bg-gray-100 text-gray-600 font-bold px-1.5 py-0.5 rounded border border-gray-200">RC37852</span>
-              </div>
-              <p className="text-[10px] text-gray-500 font-medium tracking-wide hidden sm:block">Communication and Marketing Research Group</p>
-            </div>
+            <img 
+              src="/assets/aistudio/WhatsApp_Image_2026-10-23_at_5.35.28_PM_edabd00e.jpeg" 
+              alt="CMRG Ltd Logo" 
+              className="h-9 sm:h-10 w-auto object-contain bg-white rounded"
+            />
           </div>
         </div>
 
@@ -153,16 +140,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
       {activeSection === 'home' && (
         <>
           {/* HERO SECTION */}
-          <section className="relative overflow-hidden bg-[#080B10] py-16 lg:py-24 px-4 sm:px-8">
-            {/* Background ambient lighting & red curve decoration */}
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-[#E30620]/15 to-transparent rounded-full blur-3xl pointer-events-none"></div>
-            <div className="absolute -bottom-20 left-0 w-full h-40 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
+          <section className="relative overflow-hidden bg-[#080B10] py-20 lg:py-28 px-4 sm:px-8">
+            {/* Background reference image layer & gradient overlay */}
+            <div className="absolute inset-0 z-0 overflow-hidden opacity-40 lg:opacity-55 pointer-events-none">
+              <img 
+                src="/assets/aistudio/image_3536d147.png" 
+                alt="CMRG Fieldwork Background" 
+                className="w-full h-full object-cover object-center scale-105 filter brightness-90"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#080B10] via-[#080B10]/90 to-[#080B10]/60"></div>
+            </div>
+
+            {/* Ambient lighting & red curve decoration */}
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-[#E30620]/20 to-transparent rounded-full blur-3xl pointer-events-none z-0"></div>
+            <div className="absolute -bottom-20 left-0 w-full h-40 bg-gradient-to-t from-black to-transparent pointer-events-none z-0"></div>
 
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
               
               {/* Left Column: Copy & CTAs */}
               <div className="lg:col-span-6 space-y-6 text-left">
-                <div className="inline-flex items-center gap-2 bg-[#E30620]/10 border border-[#E30620]/30 text-[#E30620] px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase">
+                <div className="inline-flex items-center gap-2 bg-[#E30620]/15 border border-[#E30620]/40 text-[#E30620] px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase">
                   <span>CMRG DATA COLLECT</span>
                 </div>
 
@@ -171,27 +168,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                   <span className="text-[#E30620]">Real Data.</span>
                 </h1>
 
-                <p className="text-gray-300 text-base sm:text-lg leading-relaxed font-normal max-w-xl">
+                <p className="text-gray-200 text-base sm:text-lg leading-relaxed font-normal max-w-xl">
                   “A powerful and flexible data collection platform for market research, public opinion polling and field surveys across Nigeria.”
                 </p>
 
                 {/* 4 Feature indicators */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col gap-1">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-3 flex flex-col gap-1 shadow-md">
                     <ShieldCheck className="w-5 h-5 text-[#E30620]" />
-                    <span className="text-xs font-semibold text-gray-200">Secure & Reliable</span>
+                    <span className="text-xs font-semibold text-gray-100">Secure & Reliable</span>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col gap-1">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-3 flex flex-col gap-1 shadow-md">
                     <MapPin className="w-5 h-5 text-[#E30620]" />
-                    <span className="text-xs font-semibold text-gray-200">GPS Verified</span>
+                    <span className="text-xs font-semibold text-gray-100">GPS Verified</span>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col gap-1">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-3 flex flex-col gap-1 shadow-md">
                     <BarChart3 className="w-5 h-5 text-[#E30620]" />
-                    <span className="text-xs font-semibold text-gray-200">Real-time Stats</span>
+                    <span className="text-xs font-semibold text-gray-100">Real-time Stats</span>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col gap-1">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-3 flex flex-col gap-1 shadow-md">
                     <Smartphone className="w-5 h-5 text-[#E30620]" />
-                    <span className="text-xs font-semibold text-gray-200">Web, Android & iOS</span>
+                    <span className="text-xs font-semibold text-gray-100">Web, Android & iOS</span>
                   </div>
                 </div>
 
@@ -199,24 +196,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                 <div className="pt-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <button
                     onClick={() => setShowQRModal(true)}
-                    className="px-6 py-3.5 bg-[#E30620] hover:bg-[#c5051b] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2.5 text-sm"
+                    className="px-6.5 py-4 bg-[#E30620] hover:bg-[#c5051b] text-white font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all flex items-center gap-2.5 text-sm group"
                   >
-                    <QrCode className="w-5 h-5" />
+                    <QrCode className="w-5 h-5 group-hover:scale-110 transition-transform" />
                     <span>Scan QR Code to Access the App</span>
-                    <ArrowRight className="w-4 h-4 ml-1" />
+                    <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                   </button>
-                  <div className="text-xs text-gray-400 font-medium">
+                  <div className="text-xs text-gray-300 font-medium">
                     <span className="text-white font-semibold">No Play Store. No App Store.</span><br />
                     Just Scan & Start Collecting.
                   </div>
                 </div>
               </div>
 
-              {/* Right Column: Researcher Graphic & Phone Mockup & QR Card */}
-              <div className="lg:col-span-6 relative flex flex-col sm:flex-row items-center justify-center gap-6">
+              {/* Right Column: Phone Mockup & QR Card */}
+              <div className="lg:col-span-6 relative flex flex-col sm:flex-row items-center justify-center gap-5">
                 
-                {/* Field Researcher / Phone Mockup Card */}
-                <div className="relative bg-gradient-to-b from-[#161D2B] to-[#0D131F] border border-gray-800 rounded-3xl p-5 shadow-2xl w-full max-w-sm">
+                {/* Field Enumerator App Screen Mockup */}
+                <div className="relative bg-gradient-to-b from-[#161D2B] to-[#0D131F] border border-gray-700/80 rounded-3xl p-5 shadow-2xl w-full max-w-sm backdrop-blur-xl">
                   <div className="flex items-center justify-between pb-4 border-b border-gray-800">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-[#E30620]"></div>
@@ -226,13 +223,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                   </div>
 
                   <div className="py-4 space-y-3">
-                    <div className="bg-black/40 rounded-xl p-3 border border-gray-800/80">
+                    <div className="bg-black/50 rounded-xl p-3 border border-gray-800">
                       <p className="text-[11px] text-gray-400">Good morning,</p>
                       <p className="text-sm font-bold text-white">Dr. Tunde Fashola (Field Supervisor)</p>
                     </div>
 
                     <div className="space-y-2">
-                      <div className="bg-white/5 hover:bg-white/10 transition-colors p-3 rounded-xl border border-white/5 flex items-center justify-between cursor-pointer" onClick={onContinueAsDemo}>
+                      <div className="bg-white/5 hover:bg-white/10 transition-colors p-3 rounded-xl border border-white/10 flex items-center justify-between cursor-pointer" onClick={onContinueAsDemo}>
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-[#E30620]/20 text-[#E30620] flex items-center justify-center">
                             <FileText className="w-4 h-4" />
@@ -242,10 +239,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                             <p className="text-[10px] text-gray-400">View active survey quotas (Lagos, Kano)</p>
                           </div>
                         </div>
-                        <ArrowRight className="w-4 h-4 text-gray-500" />
+                        <ArrowRight className="w-4 h-4 text-gray-400" />
                       </div>
 
-                      <div className="bg-white/5 hover:bg-white/10 transition-colors p-3 rounded-xl border border-white/5 flex items-center justify-between cursor-pointer" onClick={onContinueAsDemo}>
+                      <div className="bg-white/5 hover:bg-white/10 transition-colors p-3 rounded-xl border border-white/10 flex items-center justify-between cursor-pointer" onClick={onContinueAsDemo}>
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
                             <Download className="w-4 h-4" />
@@ -255,10 +252,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                             <p className="text-[10px] text-gray-400">Offline questionnaires & audio assets</p>
                           </div>
                         </div>
-                        <ArrowRight className="w-4 h-4 text-gray-500" />
+                        <ArrowRight className="w-4 h-4 text-gray-400" />
                       </div>
 
-                      <div className="bg-white/5 hover:bg-white/10 transition-colors p-3 rounded-xl border border-white/5 flex items-center justify-between cursor-pointer" onClick={onContinueAsDemo}>
+                      <div className="bg-white/5 hover:bg-white/10 transition-colors p-3 rounded-xl border border-white/10 flex items-center justify-between cursor-pointer" onClick={onContinueAsDemo}>
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
                             <Database className="w-4 h-4" />
@@ -268,11 +265,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                             <p className="text-[10px] text-gray-400">0 pending offline submissions</p>
                           </div>
                         </div>
-                        <ArrowRight className="w-4 h-4 text-gray-500" />
+                        <ArrowRight className="w-4 h-4 text-gray-400" />
                       </div>
                     </div>
 
-                    <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-3 flex items-center gap-3">
+                    <div className="bg-emerald-950/55 border border-emerald-500/30 rounded-xl p-3 flex items-center gap-3">
                       <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
                       <div>
                         <p className="text-[11px] font-bold text-emerald-300">GPS Location Verified</p>
@@ -283,11 +280,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                 </div>
 
                 {/* QR Access Card */}
-                <div className="bg-white text-[#111827] rounded-3xl p-5 shadow-2xl max-w-[220px] w-full text-center flex flex-col items-center">
+                <div className="bg-white text-[#111827] rounded-3xl p-5 shadow-2xl max-w-[210px] w-full text-center flex flex-col items-center">
                   <p className="text-xs font-black uppercase tracking-tight text-gray-900 mb-3">Scan to access<br />CMRG Data Collect</p>
                   
                   {/* QR Code Graphic Box */}
-                  <div className="w-36 h-36 bg-gray-50 border-2 border-dashed border-[#E30620]/40 rounded-2xl p-2.5 flex items-center justify-center relative group">
+                  <div className="w-36 h-36 bg-gray-50 border-2 border-dashed border-[#E30620]/50 rounded-2xl p-2.5 flex items-center justify-center relative shadow-inner">
                     <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-[#E30620]"></div>
                     <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-[#E30620]"></div>
                     <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-[#E30620]"></div>
@@ -300,7 +297,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
 
                   <p className="text-[10px] text-gray-500 font-medium mt-3">Works on Android & iOS<br />(through your browser)</p>
                   
-                  <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100 text-[11px] font-bold text-gray-700">
+                  <div className="flex items-center justify-center gap-3 mt-3 pt-3 border-t border-gray-100 text-[11px] font-bold text-gray-700 w-full">
                     <span className="flex items-center gap-1">🤖 Android</span>
                     <span>•</span>
                     <span className="flex items-center gap-1">🍎 iOS</span>
@@ -720,17 +717,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-gray-900">
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <div className="grid grid-cols-4 gap-0.5 bg-[#E30620] p-1 rounded-sm">
-                <div className="w-1 h-1 bg-white"></div>
-                <div className="w-1 h-1 bg-white"></div>
-                <div className="w-1 h-1 bg-white"></div>
-                <div className="w-1 h-1 bg-white"></div>
-                <div className="w-1 h-1 bg-white"></div>
-                <div className="w-1 h-1 bg-white"></div>
-                <div className="w-1 h-1 bg-white"></div>
-                <div className="w-1 h-1 bg-white"></div>
-              </div>
-              <span className="font-extrabold text-white text-sm">CMRG Ltd.</span>
+              <img 
+                src="/assets/aistudio/WhatsApp_Image_2026-10-23_at_5.35.28_PM_edabd00e.jpeg" 
+                alt="CMRG Ltd Logo" 
+                className="h-8 w-auto object-contain bg-white rounded"
+              />
             </div>
             <p className="text-[11px] text-gray-500 leading-relaxed">
               Communication and Marketing Research Group Limited (RC37852). Nigeria's trusted partner for market research, opinion polling, and field data collection.

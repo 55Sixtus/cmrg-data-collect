@@ -114,26 +114,12 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         <div className="flex items-center gap-2.5">
-          {/* Red square grid homage to CMRG logo */}
-          <div className="grid grid-cols-4 gap-0.5 bg-[#C8202F] p-1 rounded-sm shadow-xs">
-            <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-            <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-            <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-            <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-            <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-            <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-            <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-            <div className="w-1.5 h-1.5 bg-white rounded-2xs"></div>
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="font-bold text-[#17243A] text-sm sm:text-lg tracking-tight">CMRG <span className="text-[#C8202F]">DATA COLLECT</span></span>
-              <span className="hidden sm:inline-block bg-red-50 text-[#C8202F] text-[11px] font-semibold px-2 py-0.5 rounded-full border border-red-200">v4.8 Enterprise</span>
-            </div>
-            <p className="hidden sm:block text-[11px] text-gray-500 font-medium tracking-wide">
-              Tech savvy <span className="text-[#C8202F]">•</span> Data Integrity <span className="text-[#C8202F]">•</span> Actionable insights
-            </p>
-          </div>
+          <img 
+            src="/assets/aistudio/WhatsApp_Image_2026-10-23_at_5.35.28_PM_edabd00e.jpeg" 
+            alt="CMRG Ltd Logo" 
+            className="h-8 sm:h-9 w-auto object-contain bg-white rounded"
+          />
+          <span className="hidden sm:inline-block bg-red-50 text-[#C8202F] text-[11px] font-semibold px-2 py-0.5 rounded-full border border-red-200">v4.8 Enterprise</span>
         </div>
       </div>
 
