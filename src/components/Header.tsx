@@ -15,7 +15,8 @@ import {
   Wifi,
   WifiOff,
   CloudUpload,
-  Database
+  Database,
+  QrCode
 } from 'lucide-react';
 import { Project, Submission, Enumerator, TabType } from '../types';
 import { offlineQueue } from '../services/offlineQueue';
@@ -28,6 +29,7 @@ interface HeaderProps {
   onSignOut: () => void;
   onToggleSidebar: () => void;
   onNavigateTab: (tab: TabType) => void;
+  onOpenWhatsAppConnect?: (projectCode?: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -37,7 +39,8 @@ export const Header: React.FC<HeaderProps> = ({
   enumerators, 
   onSignOut, 
   onToggleSidebar,
-  onNavigateTab
+  onNavigateTab,
+  onOpenWhatsAppConnect
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -115,9 +118,9 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div className="flex items-center gap-2.5">
           <img 
-            src="/assets/aistudio/WhatsApp_Image_2026-10-23_at_5.35.28_PM_edabd00e.jpeg" 
+            src="/assets/aistudio/cmrg_logo_clean.png" 
             alt="CMRG Ltd Logo" 
-            className="h-8 sm:h-9 w-auto object-contain bg-white rounded"
+            className="h-8 sm:h-9 w-auto object-contain"
           />
           <span className="hidden sm:inline-block bg-red-50 text-[#C8202F] text-[11px] font-semibold px-2 py-0.5 rounded-full border border-red-200">v4.8 Enterprise</span>
         </div>
@@ -268,6 +271,19 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden sm:inline">Offline Mode</span>
           </div>
         ) : null}
+
+        {/* WhatsApp-Style Fast Pair QR Connect Button */}
+        {onOpenWhatsAppConnect && (
+          <button
+            onClick={() => onOpenWhatsAppConnect()}
+            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-xs transition-all active:scale-[0.98]"
+            title="Scan QR to connect field enumerators (WhatsApp-Style)"
+          >
+            <QrCode className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Link Devices (QR)</span>
+            <span className="sm:hidden">Pair QR</span>
+          </button>
+        )}
 
         {/* Sync Status Button */}
         <button

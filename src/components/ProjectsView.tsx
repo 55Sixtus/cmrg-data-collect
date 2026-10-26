@@ -11,16 +11,23 @@ import {
   Clock, 
   X, 
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  QrCode
 } from 'lucide-react';
 
 interface ProjectsViewProps {
   projects: Project[];
   onAddProject: (newProj: Project) => void;
   onSelectProjectForSimulator: (projId: string) => void;
+  onOpenWhatsAppConnect?: (projectCode?: string) => void;
 }
 
-export const ProjectsView: React.FC<ProjectsViewProps> = ({ projects, onAddProject, onSelectProjectForSimulator }) => {
+export const ProjectsView: React.FC<ProjectsViewProps> = ({ 
+  projects, 
+  onAddProject, 
+  onSelectProjectForSimulator,
+  onOpenWhatsAppConnect
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sectorFilter, setSectorFilter] = useState<string>('All');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -173,6 +180,16 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ projects, onAddProje
                 </div>
 
                 <div className="flex items-center gap-2 pt-2">
+                  {onOpenWhatsAppConnect && (
+                    <button
+                      onClick={() => onOpenWhatsAppConnect(proj.code)}
+                      className="bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs font-semibold px-2.5 py-2 rounded-lg transition-colors flex items-center gap-1 shadow-xs"
+                      title="WhatsApp-Style Scan & Connect"
+                    >
+                      <QrCode className="w-3.5 h-3.5" />
+                      QR Connect
+                    </button>
+                  )}
                   <button
                     onClick={() => setSelectedProject(proj)}
                     className="flex-1 bg-gray-50 hover:bg-gray-100 text-[#17243A] border border-gray-200 text-xs font-semibold py-2 rounded-lg transition-colors"
@@ -245,23 +262,38 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ projects, onAddProje
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
-              <button
-                onClick={() => setSelectedProject(null)}
-                className="px-4 py-2 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 text-xs"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => {
-                  const id = selectedProject.id;
-                  setSelectedProject(null);
-                  onSelectProjectForSimulator(id);
-                }}
-                className="px-4 py-2 rounded-xl bg-[#C8202F] hover:bg-red-700 text-white font-semibold text-xs shadow-xs"
-              >
-                Launch Questionnaire Test Drive
-              </button>
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-200">
+              {onOpenWhatsAppConnect && (
+                <button
+                  onClick={() => {
+                    const code = selectedProject.code;
+                    setSelectedProject(null);
+                    onOpenWhatsAppConnect(code);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
+                >
+                  <QrCode className="w-4 h-4" />
+                  WhatsApp QR Link Device
+                </button>
+              )}
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  onClick={() => setSelectedProject(null)}
+                  className="px-4 py-2 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 text-xs"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    const id = selectedProject.id;
+                    setSelectedProject(null);
+                    onSelectProjectForSimulator(id);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-[#C8202F] hover:bg-red-700 text-white font-semibold text-xs shadow-xs"
+                >
+                  Launch Questionnaire Test Drive
+                </button>
+              </div>
             </div>
           </div>
         </div>

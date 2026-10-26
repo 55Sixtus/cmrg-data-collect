@@ -8,6 +8,7 @@ export type TabType =
   | 'analytics'
   | 'deployments'
   | 'geolock'
+  | 'field'
   | 'settings';
 
 export interface FieldDeployment {
@@ -158,4 +159,20 @@ export interface AuditLog {
   action: string;
   details: string;
   ip: string;
+}
+
+export interface GeofenceZone {
+  id: string;
+  projectId: string;
+  name: string;
+  state: string;
+  lga: string;
+  lat: number;
+  lng: number;
+  radiusMeters: number;
+  driftBufferMeters: number;
+  targetInterviews?: number;
+  assignedEnumerator?: string;
+  active: boolean;
+  createdAt?: string;
 }

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B0F17" />
+      <stop offset="100%" stop-color="#17243A" />
+    </linearGradient>
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF2E44" />
+      <stop offset="100%" stop-color="#C8202F" />
+    </linearGradient>
+  </defs>
+  <!-- Background with rounded corners -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  
+  <!-- Subtle Grid Accent -->
+  <circle cx="256" cy="256" r="210" fill="none" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="2" />
+  <circle cx="256" cy="256" r="140" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2" />
+  
+  <!-- CMRG 4-block Red Logo Geometry -->
+  <g transform="translate(146, 126)">
+    <!-- Top-left -->
+    <rect x="0" y="0" width="100" height="100" rx="20" fill="url(#redGrad)" />
+    <!-- Top-right -->
+    <rect x="120" y="0" width="100" height="100" rx="20" fill="url(#redGrad)" />
+    <!-- Bottom-left -->
+    <rect x="0" y="120" width="100" height="100" rx="20" fill="url(#redGrad)" />
+    <!-- Bottom-right with checkmark / survey mark -->
+    <rect x="120" y="120" width="100" height="100" rx="20" fill="#FFFFFF" />
+    <path d="M142 170 L160 188 L198 148" fill="none" stroke="#C8202F" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+  
+  <!-- CMRG Wordmark -->
+  <text x="256" y="405" font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif" font-size="34" font-weight="900" fill="#FFFFFF" letter-spacing="4" text-anchor="middle">CMRG COLLECT</text>
+  <text x="256" y="440" font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif" font-size="16" font-weight="600" fill="#E30620" letter-spacing="3" text-anchor="middle">ENTERPRISE FIELD PWA</text>
+</svg>

@@ -459,3 +459,66 @@ export const INITIAL_CLOUD_DEPLOYMENTS: CloudDeploymentRecord[] = [
     author: 'Lead Research DevOps'
   }
 ];
+
+export const INITIAL_GEOFENCES = [
+  {
+    id: 'gf-1',
+    projectId: 'proj-1',
+    name: 'Balogun Open Central Market, Lagos Island',
+    state: 'Lagos',
+    lga: 'Lagos Island',
+    lat: 6.4552,
+    lng: 3.3841,
+    radiusMeters: 450,
+    driftBufferMeters: 50,
+    targetInterviews: 250,
+    assignedEnumerator: 'CMRG-001 (Kwame Asante)',
+    active: true,
+    createdAt: '2026-10-24 08:30'
+  },
+  {
+    id: 'gf-2',
+    projectId: 'proj-1',
+    name: 'Bodija International Food Market, Ibadan',
+    state: 'Oyo',
+    lga: 'Ibadan North',
+    lat: 7.4345,
+    lng: 3.9056,
+    radiusMeters: 500,
+    driftBufferMeters: 60,
+    targetInterviews: 180,
+    assignedEnumerator: 'CMRG-003 (Chukwudi Eze)',
+    active: true,
+    createdAt: '2026-10-24 09:15'
+  },
+  {
+    id: 'gf-3',
+    projectId: 'proj-2',
+    name: 'Ikeja City Mall & Secretariat Commercial Corridor',
+    state: 'Lagos',
+    lga: 'Ikeja',
+    lat: 6.6194,
+    lng: 3.3581,
+    radiusMeters: 350,
+    driftBufferMeters: 40,
+    targetInterviews: 150,
+    assignedEnumerator: 'CMRG-004 (Fatima Bello)',
+    active: true,
+    createdAt: '2026-10-25 07:45'
+  },
+  {
+    id: 'gf-4',
+    projectId: 'proj-1',
+    name: 'Accra Ringway Estates & Commercial Sector',
+    state: 'Greater Accra',
+    lga: 'Osu Klottey',
+    lat: 5.5600,
+    lng: -0.1900,
+    radiusMeters: 600,
+    driftBufferMeters: 50,
+    targetInterviews: 120,
+    assignedEnumerator: 'CMRG-001 (Kwame Asante)',
+    active: true,
+    createdAt: '2026-10-25 11:20'
+  }
+];

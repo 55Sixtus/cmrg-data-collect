@@ -14,7 +14,8 @@ import {
   Send,
   ShieldCheck,
   RefreshCw,
-  Copy
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 
 interface FormBuilderProps {
@@ -22,13 +23,15 @@ interface FormBuilderProps {
   projects?: Project[];
   enumerators?: Enumerator[];
   onUpdateQuestionnaire: (updated: Questionnaire) => void;
+  onNavigateToInstall?: (code: string) => void;
 }
 
 export const FormBuilder: React.FC<FormBuilderProps> = ({ 
   questionnaires, 
   projects = [], 
   enumerators = [], 
-  onUpdateQuestionnaire 
+  onUpdateQuestionnaire,
+  onNavigateToInstall
 }) => {
   const [selectedQuestId, setSelectedQuestId] = useState<string>(questionnaires[0]?.id || '');
   const [activeTab, setActiveTab] = useState<'questions' | 'xform' | 'publishing' | 'settings'>('questions');
@@ -523,40 +526,78 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
       {/* QR Access Code Modal */}
       {showQRModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4 relative">
-            <button onClick={() => setShowQRModal(false)} className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-black rounded-full">×</button>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4 relative border border-gray-100">
+            <button onClick={() => setShowQRModal(false)} className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-black rounded-full bg-gray-100">×</button>
             
-            <div className="w-12 h-12 bg-red-50 text-[#C8202F] rounded-2xl mx-auto flex items-center justify-center">
+            <div className="w-12 h-12 bg-red-50 text-[#C8202F] rounded-2xl mx-auto flex items-center justify-center shadow-inner">
               <QrCode className="w-6 h-6" />
             </div>
 
             <div>
-              <h3 className="text-base font-bold text-[#17243A]">Enumerator Field Access QR</h3>
-              <p className="text-xs text-gray-500 mt-0.5">{selectedEnumerator?.name} ({selectedEnumerator?.id})</p>
+              <h3 className="text-base font-bold text-[#17243A]">Enumerator Field Access & Install QR</h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {selectedEnumerator ? `${selectedEnumerator.name} (${selectedEnumerator.id})` : 'All Field Enumerators'}
+              </p>
             </div>
 
-            <div className="w-48 h-48 bg-gray-50 border-2 border-dashed border-[#C8202F] rounded-2xl p-3 mx-auto flex items-center justify-center relative shadow-inner">
-              <div className="bg-black p-3 rounded-xl w-full h-full flex flex-col items-center justify-center text-white">
-                <QrCode className="w-24 h-24 text-white" />
-                <span className="text-[10px] font-mono text-emerald-400 mt-1">CMRG-SECURE-AUTH</span>
+            {/* QR Code Container with High-Contrast QR Pattern */}
+            <div className="w-52 h-52 bg-gradient-to-br from-[#0B0F17] to-[#17243A] border-2 border-[#E30620] rounded-2xl p-4 mx-auto flex flex-col items-center justify-center relative shadow-lg">
+              <div className="bg-white p-2.5 rounded-xl flex flex-col items-center justify-center shadow-md">
+                <QrCode className="w-28 h-28 text-[#0B0F17]" />
+                <span className="text-[9px] font-mono font-bold text-[#E30620] mt-1 tracking-wider">SCAN TO INSTALL</span>
               </div>
+              <span className="text-[10px] font-mono text-gray-300 mt-2">
+                app.ourfield.com/install/{currentQuestionnaire?.id ? currentQuestionnaire.id.replace('quest-', 'CMRG-') : 'CMRG-123'}
+              </span>
             </div>
 
-            <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-xs font-mono font-bold text-gray-800">
-              Access Code: CMRG-ACC-{selectedEnumerator?.id.replace('ENU-', '') || '001'}89
+            {/* Direct Link Box */}
+            <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-xs font-mono font-bold text-gray-800 flex items-center justify-between gap-2">
+              <span className="truncate text-[11px] text-[#17243A]">
+                app.ourfield.com/install/{currentQuestionnaire?.id ? currentQuestionnaire.id.replace('quest-', 'CMRG-') : 'CMRG-123'}
+              </span>
+              <button
+                onClick={() => {
+                  const url = `${window.location.origin}?install=${currentQuestionnaire?.id ? currentQuestionnaire.id.replace('quest-', 'CMRG-') : 'CMRG-123'}`;
+                  navigator.clipboard?.writeText(url);
+                  alert('Install link copied to clipboard!');
+                }}
+                className="p-1 text-gray-500 hover:text-[#C8202F] shrink-0"
+                title="Copy link"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
             </div>
 
-            <p className="text-[10px] text-gray-500">
-              Scan with Android / iOS tablet camera to instantly load survey form v{currentQuestionnaire.version} with offline caching.
+            <p className="text-[11px] text-gray-500 leading-snug">
+              Enumerator scans with phone camera → opens browser page with <b>"INSTALL APP"</b> button → PWA installs to phone home screen.
             </p>
 
-            <button
-              onClick={() => setShowQRModal(false)}
-              className="w-full py-2.5 bg-[#C8202F] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-md transition-all"
-            >
-              Close
-            </button>
+            <div className="flex flex-col gap-2 pt-1">
+              {onNavigateToInstall && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const code = currentQuestionnaire?.id ? currentQuestionnaire.id.replace('quest-', 'CMRG-') : 'CMRG-123';
+                    setShowQRModal(false);
+                    onNavigateToInstall(code);
+                  }}
+                  className="w-full py-2.5 bg-[#17243A] hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md"
+                >
+                  <span>Test Mobile Install Page</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-[#E30620]" />
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowQRModal(false)}
+                className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition-all"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

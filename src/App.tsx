@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { TabType, Project, Questionnaire, Submission, Enumerator, AuditLog, FieldDeployment, RetentionPolicy, CloudDeploymentRecord } from './types';
+import { TabType, Project, Questionnaire, Submission, Enumerator, AuditLog, FieldDeployment, RetentionPolicy, CloudDeploymentRecord, GeofenceZone } from './types';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { DataService } from './services/dataService';
-import { INITIAL_QUESTIONNAIRES, INITIAL_FIELD_DEPLOYMENTS, INITIAL_RETENTION_POLICIES, INITIAL_CLOUD_DEPLOYMENTS } from './mockData';
+import { INITIAL_QUESTIONNAIRES, INITIAL_FIELD_DEPLOYMENTS, INITIAL_RETENTION_POLICIES, INITIAL_CLOUD_DEPLOYMENTS, INITIAL_GEOFENCES } from './mockData';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
@@ -14,9 +14,12 @@ import { EnumeratorsView } from './components/EnumeratorsView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { DeploymentRetentionView } from './components/DeploymentRetentionView';
 import { GeoLockManager } from './components/GeoLockManager';
+import { FieldPwaView } from './components/FieldPwaView';
 import { SettingsView } from './components/SettingsView';
 import { LoginScreen } from './components/LoginScreen';
 import { LandingPage } from './components/LandingPage';
+import { MobileInstallPage } from './components/MobileInstallPage';
+import { WhatsAppQrConnectModal } from './components/WhatsAppQrConnectModal';
 import { Footer } from './components/Footer';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { offlineQueue } from './services/offlineQueue';
@@ -25,7 +28,10 @@ export default function App() {
   const [session, setSession] = useState<any>(null);
   const [authChecking, setAuthChecking] = useState(true);
 
-  const [currentView, setCurrentView] = useState<'landing' | 'app' | 'login'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'app' | 'login' | 'install'>('landing');
+  const [installCode, setInstallCode] = useState<string>('CMRG-123');
+  const [showWhatsAppConnectModal, setShowWhatsAppConnectModal] = useState(false);
+  const [connectProjectCode, setConnectProjectCode] = useState<string>('CMRG-123');
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -34,6 +40,7 @@ export default function App() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [enumerators, setEnumerators] = useState<Enumerator[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [geofences, setGeofences] = useState<GeofenceZone[]>(INITIAL_GEOFENCES);
   
   const [fieldDeployments, setFieldDeployments] = useState<FieldDeployment[]>(INITIAL_FIELD_DEPLOYMENTS);
   const [retentionPolicies, setRetentionPolicies] = useState<RetentionPolicy[]>(INITIAL_RETENTION_POLICIES);
@@ -45,6 +52,29 @@ export default function App() {
 
   const [selectedProjectIdForSimulator, setSelectedProjectIdForSimulator] = useState<string>('proj-1');
   const [forceDemoAccess, setForceDemoAccess] = useState(false);
+
+  // Check for URL query params (e.g. ?install=CMRG-123 or PWA standalone launch)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const installParam = params.get('install');
+      const modeParam = params.get('mode');
+      if (installParam) {
+        setInstallCode(installParam);
+        setCurrentView('install');
+      } else if (window.location.pathname.startsWith('/install/')) {
+        const code = window.location.pathname.replace('/install/', '');
+        if (code) setInstallCode(code);
+        setCurrentView('install');
+      } else if (modeParam === 'pwa' || (typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches)) {
+        setForceDemoAccess(true);
+        setActiveTab('field');
+        setCurrentView('app');
+      }
+    } catch (e) {
+      // Ignore URL parsing errors
+    }
+  }, []);
 
   // Listen to offline synced items from IndexedDB
   useEffect(() => {
@@ -180,6 +210,19 @@ export default function App() {
     }));
   };
 
+  const handleAddGeofence = (newGf: GeofenceZone) => {
+    setGeofences(prev => [newGf, ...prev]);
+    const newLog: AuditLog = {
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: 'Dr. Tunde Fashola (Admin)',
+      action: 'Geofence Perimeter Locked',
+      details: `Pre-field geolock established for "${newGf.name}" (${newGf.state}, ${newGf.radiusMeters}m radius, Quota: ${newGf.targetInterviews})`,
+      ip: '197.210.44.12'
+    };
+    setAuditLogs(prev => [newLog, ...prev]);
+  };
+
   const handleSelectProjectForSimulator = (projId: string) => {
     setSelectedProjectIdForSimulator(projId);
     setActiveTab('simulator');
@@ -263,6 +306,29 @@ export default function App() {
     setAuditLogs(prev => [newLog, ...prev]);
   };
 
+  const handleOpenWhatsAppConnect = (projectCode?: string) => {
+    if (projectCode) {
+      setConnectProjectCode(projectCode);
+    } else if (projects.length > 0) {
+      setConnectProjectCode(projects[0].code);
+    }
+    setShowWhatsAppConnectModal(true);
+  };
+
+  if (currentView === 'install') {
+    return (
+      <MobileInstallPage 
+        projectCode={installCode}
+        onOpenFieldApp={(code) => {
+          setForceDemoAccess(true);
+          setActiveTab('field');
+          setCurrentView('app');
+        }}
+        onBackToMain={() => setCurrentView('landing')}
+      />
+    );
+  }
+
   if (currentView === 'landing') {
     return (
       <LandingPage 
@@ -270,6 +336,10 @@ export default function App() {
         onContinueAsDemo={() => {
           setForceDemoAccess(true);
           setCurrentView('app');
+        }}
+        onOpenInstall={(code) => {
+          setInstallCode(code);
+          setCurrentView('install');
         }}
       />
     );
@@ -319,6 +389,7 @@ export default function App() {
         onSignOut={() => supabase?.auth.signOut()} 
         onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
         onNavigateTab={(tab) => setActiveTab(tab)}
+        onOpenWhatsAppConnect={handleOpenWhatsAppConnect}
       />
 
       {isDemo && !isSupabaseConfigured && (
@@ -368,7 +439,11 @@ export default function App() {
                 projects={projects} 
                 submissions={submissions} 
                 enumerators={enumerators} 
+                geofences={geofences}
+                onAddGeofence={handleAddGeofence}
                 onNavigateTab={setActiveTab} 
+                onUpdateSubmissionStatus={handleUpdateSubmissionStatus}
+                onOpenWhatsAppConnect={handleOpenWhatsAppConnect}
               />
             )}
 
@@ -377,6 +452,7 @@ export default function App() {
                 projects={projects} 
                 onAddProject={handleAddProject} 
                 onSelectProjectForSimulator={handleSelectProjectForSimulator} 
+                onOpenWhatsAppConnect={handleOpenWhatsAppConnect}
               />
             )}
 
@@ -386,6 +462,10 @@ export default function App() {
                 projects={projects}
                 enumerators={enumerators}
                 onUpdateQuestionnaire={handleUpdateQuestionnaire} 
+                onNavigateToInstall={(code) => {
+                  setInstallCode(code);
+                  setCurrentView('install');
+                }}
               />
             )}
 
@@ -427,7 +507,21 @@ export default function App() {
             )}
 
             {activeTab === 'geolock' && (
-              <GeoLockManager projects={projects} />
+              <GeoLockManager 
+                projects={projects} 
+                geofences={geofences}
+                onAddGeofence={handleAddGeofence}
+              />
+            )}
+
+            {activeTab === 'field' && (
+              <FieldPwaView 
+                projects={projects}
+                questionnaires={questionnaires}
+                enumerators={enumerators}
+                geofences={geofences}
+                onAddSubmission={handleAddSubmission}
+              />
             )}
 
             {activeTab === 'settings' && (
@@ -438,6 +532,24 @@ export default function App() {
           <Footer />
         </main>
       </div>
+
+      {showWhatsAppConnectModal && (
+        <WhatsAppQrConnectModal 
+          projects={projects}
+          initialProjectCode={connectProjectCode}
+          onClose={() => setShowWhatsAppConnectModal(false)}
+          onSimulatePhoneScan={(code, pin, title, enuId) => {
+            setInstallCode(code);
+            try {
+              window.history.pushState({}, '', `/?install=${code}&pin=${pin}&title=${encodeURIComponent(title)}&enu=${enuId}&connect=true`);
+            } catch (e) {
+              // ignore history errors
+            }
+            setShowWhatsAppConnectModal(false);
+            setCurrentView('install');
+          }}
+        />
+      )}
     </div>
   );
 }

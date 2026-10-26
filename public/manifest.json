@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "CMRG Data Collect",
+  "short_name": "CMRG Collect",
+  "description": "Communication and Marketing Research Group Ltd. Enterprise Field Data Collection & Situation Room Platform.",
+  "start_url": "/?mode=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#E30620",
+  "background_color": "#0B0F17",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
