@@ -7,6 +7,7 @@ export type TabType =
   | 'enumerators'
   | 'analytics'
   | 'deployments'
+  | 'geolock'
   | 'settings';
 
 export interface FieldDeployment {

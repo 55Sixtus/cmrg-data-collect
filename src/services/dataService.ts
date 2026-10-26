@@ -126,6 +126,100 @@ export const DataService = {
     });
   },
 
+  async getQuestionnaires(): Promise<{ data: Questionnaire[]; isDemo: boolean }> {
+    return perfMonitor.measure('DataService.getQuestionnaires', async () => {
+      if (!isSupabaseConfigured || !supabase) {
+        return { data: INITIAL_QUESTIONNAIRES, isDemo: true };
+      }
+      try {
+        const { data, error } = await supabase.from('questionnaires').select('*');
+        if (error || !data || data.length === 0) {
+          return { data: INITIAL_QUESTIONNAIRES, isDemo: false };
+        }
+        const mapped: Questionnaire[] = data.map((q: any) => ({
+          id: q.id,
+          title: q.title,
+          version: q.version || '1.0',
+          projectId: q.project_id,
+          updatedAt: q.updated_at ? q.updated_at.split('T')[0] : new Date().toISOString().split('T')[0],
+          questions: q.schema_json || []
+        }));
+        return { data: mapped, isDemo: false };
+      } catch {
+        return { data: INITIAL_QUESTIONNAIRES, isDemo: false };
+      }
+    });
+  },
+
+  async saveQuestionnaire(quest: Questionnaire): Promise<{ success: boolean; error?: string }> {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: true };
+    }
+    try {
+      const { error } = await supabase.from('questionnaires').upsert({
+        id: quest.id,
+        project_id: quest.projectId,
+        title: quest.title,
+        version: quest.version,
+        schema_json: quest.questions,
+        updated_at: new Date().toISOString()
+      });
+      if (error) return { success: false, error: error.message };
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  },
+
+  async publishQuestionnaire(questionnaireId: string, version: string, schema: any, changelog: string, userId?: string): Promise<{ success: boolean; error?: string }> {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: true };
+    }
+    try {
+      await supabase.from('questionnaire_versions').insert({
+        questionnaire_id: questionnaireId,
+        version,
+        schema_json: schema,
+        changelog,
+        published_by: userId || null
+      });
+
+      const { error: updateErr } = await supabase.from('questionnaires').update({
+        version,
+        schema_json: schema,
+        updated_at: new Date().toISOString()
+      }).eq('id', questionnaireId);
+
+      if (updateErr) return { success: false, error: updateErr.message };
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  },
+
+  async assignProjectEnumerators(projectId: string, enumeratorIds: string[]): Promise<{ success: boolean; error?: string }> {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: true };
+    }
+    try {
+      await supabase.from('project_memberships').delete().eq('project_id', projectId);
+      
+      const rows = enumeratorIds.map(uid => ({
+        project_id: projectId,
+        user_id: uid,
+        assigned_role: 'Enumerator'
+      }));
+
+      if (rows.length > 0) {
+        const { error } = await supabase.from('project_memberships').insert(rows);
+        if (error) return { success: false, error: error.message };
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  },
+
   async getAuditLogs(): Promise<{ data: AuditLog[]; isDemo: boolean }> {
     return perfMonitor.measure('DataService.getAuditLogs', async () => {
       if (!isSupabaseConfigured || !supabase) {

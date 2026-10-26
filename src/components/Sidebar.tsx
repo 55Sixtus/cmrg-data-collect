@@ -12,7 +12,8 @@ import {
   Database,
   Smartphone,
   Wrench,
-  Rocket
+  Rocket,
+  MapPin
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -27,6 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, flagg
     { id: 'projects', label: 'Field Projects', icon: <FolderKanban className="w-4 h-4" /> },
     { id: 'builder', label: 'Questionnaire Studio', icon: <FileCode2 className="w-4 h-4" /> },
     { id: 'simulator', label: 'Form Test Drive', icon: <PlaySquare className="w-4 h-4" /> },
+    { id: 'geolock', label: 'Geo-Lock Manager', icon: <MapPin className="w-4 h-4" /> },
     { id: 'quality', label: 'Quality & Audit', icon: <ShieldAlert className="w-4 h-4" />, badge: flaggedCount },
     { id: 'enumerators', label: 'Field Enumerators', icon: <Users className="w-4 h-4" /> },
     { id: 'analytics', label: 'Analytics & Crosstabs', icon: <BarChart3 className="w-4 h-4" /> },

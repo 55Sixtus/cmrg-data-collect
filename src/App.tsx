@@ -13,6 +13,7 @@ import { QualityControl } from './components/QualityControl';
 import { EnumeratorsView } from './components/EnumeratorsView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { DeploymentRetentionView } from './components/DeploymentRetentionView';
+import { GeoLockManager } from './components/GeoLockManager';
 import { SettingsView } from './components/SettingsView';
 import { LoginScreen } from './components/LoginScreen';
 import { LandingPage } from './components/LandingPage';
@@ -382,6 +383,8 @@ export default function App() {
             {activeTab === 'builder' && (
               <FormBuilder 
                 questionnaires={questionnaires} 
+                projects={projects}
+                enumerators={enumerators}
                 onUpdateQuestionnaire={handleUpdateQuestionnaire} 
               />
             )}
@@ -421,6 +424,10 @@ export default function App() {
                 cloudDeployments={cloudDeployments}
                 onTriggerCloudDeployment={handleTriggerCloudDeployment}
               />
+            )}
+
+            {activeTab === 'geolock' && (
+              <GeoLockManager projects={projects} />
             )}
 
             {activeTab === 'settings' && (
