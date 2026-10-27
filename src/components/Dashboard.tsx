@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Project, Submission, Enumerator, GeofenceZone } from '../types';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import * as XLSX from 'xlsx';
 import { 
   MapPin, 
   Search, 
@@ -671,11 +672,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
     document.body.removeChild(link);
   };
 
-  // Export Submissions to Excel (.xlsx-compatible XML Spreadsheet)
+  // Export Submissions to Genuine Excel Open XML (.xlsx)
   const handleExportExcel = () => {
     setShowExportMenu(false);
     const headers = ['Submission UUID', 'Project Code', 'Project Title', 'Enumerator Name', 'State', 'LGA', 'Latitude', 'Longitude', 'Accuracy (m)', 'Duration (s)', 'Status', 'Submitted At', 'Google Maps Link'];
-    const rows = filteredSubmissions.map(s => [
+    const dataRows = filteredSubmissions.map(s => [
       s.id,
       s.projectId,
       s.projectTitle,
@@ -691,23 +692,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
       `https://maps.google.com/?q=${s.gps?.lat},${s.gps?.lng}`
     ]);
 
-    let xml = '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>';
-    xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
-    xml += '<Worksheet ss:Name="CMRG Field Submissions"><Table>';
-    xml += '<Row>' + headers.map(h => `<Cell><Data ss:Type="String">${h}</Data></Cell>`).join('') + '</Row>';
-    rows.forEach(row => {
-      xml += '<Row>' + row.map(c => `<Cell><Data ss:Type="String">${String(c).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</Data></Cell>`).join('') + '</Row>';
-    });
-    xml += '</Table></Worksheet></Workbook>';
+    // Sanitize against formula injection (=, +, -, @)
+    const sanitizedRows = dataRows.map(row => row.map(cell => {
+      const str = String(cell ?? '');
+      if (/^[=+\-@]/.test(str)) {
+        return `'${str}`;
+      }
+      return cell;
+    }));
 
-    const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `CMRG_Situation_Room_${new Date().toISOString().slice(0, 10)}.xls`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const worksheetData = [headers, ...sanitizedRows];
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'CMRG Submissions');
+
+    XLSX.writeFile(workbook, `CMRG_Situation_Room_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   // Export Submissions to OpenGIS KML 2.2 (for Google Earth, QGIS, ArcGIS)
