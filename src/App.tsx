@@ -19,6 +19,7 @@ import { SettingsView } from './components/SettingsView';
 import { LoginScreen } from './components/LoginScreen';
 import { LandingPage } from './components/LandingPage';
 import { MobileInstallPage } from './components/MobileInstallPage';
+import { PublicCheckView } from './components/PublicCheckView';
 import { WhatsAppQrConnectModal } from './components/WhatsAppQrConnectModal';
 import { Footer } from './components/Footer';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -28,8 +29,9 @@ export default function App() {
   const [session, setSession] = useState<any>(null);
   const [authChecking, setAuthChecking] = useState(true);
 
-  const [currentView, setCurrentView] = useState<'landing' | 'app' | 'login' | 'install'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'app' | 'login' | 'install' | 'check'>('landing');
   const [installCode, setInstallCode] = useState<string>('CMRG-123');
+  const [checkCode, setCheckCode] = useState<string>('CMRG-739');
   const [showWhatsAppConnectModal, setShowWhatsAppConnectModal] = useState(false);
   const [connectProjectCode, setConnectProjectCode] = useState<string>('CMRG-123');
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -59,7 +61,17 @@ export default function App() {
       const params = new URLSearchParams(window.location.search);
       const installParam = params.get('install');
       const modeParam = params.get('mode');
-      if (installParam) {
+      const checkParam = params.get('check');
+      if (checkParam) {
+        setCheckCode(checkParam);
+        setCurrentView('check');
+      } else if (window.location.pathname.startsWith('/check/')) {
+        const code = window.location.pathname.replace('/check/', '');
+        if (code) {
+          setCheckCode(code);
+          setCurrentView('check');
+        }
+      } else if (installParam) {
         setInstallCode(installParam);
         setCurrentView('install');
       } else if (window.location.pathname.startsWith('/install/')) {
@@ -314,6 +326,25 @@ export default function App() {
     }
     setShowWhatsAppConnectModal(true);
   };
+
+  if (currentView === 'check') {
+    return (
+      <PublicCheckView 
+        checkCode={checkCode}
+        projects={projects}
+        geofences={geofences}
+        submissions={submissions}
+        onBackToApp={() => {
+          setForceDemoAccess(true);
+          setCurrentView('app');
+        }}
+        onOpenInstall={(code) => {
+          setInstallCode(code);
+          setCurrentView('install');
+        }}
+      />
+    );
+  }
 
   if (currentView === 'install') {
     return (

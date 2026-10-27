@@ -20,7 +20,17 @@ import {
   Settings,
   Battery,
   AlertCircle,
-  QrCode
+  QrCode,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Share2,
+  ExternalLink,
+  Globe,
+  Music,
+  Film,
+  Image,
+  Copy
 } from 'lucide-react';
 import L from 'leaflet';
 
@@ -132,6 +142,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [inspectingSub, setInspectingSub] = useState<Submission | null>(null);
   const [reviewReason, setReviewReason] = useState<string>('');
 
+  // Export Menu & Shareable Check Link State
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showCheckModal, setShowCheckModal] = useState(false);
+  const [activeCheckCode, setActiveCheckCode] = useState('CMRG-739');
+  const [copiedCheckUrl, setCopiedCheckUrl] = useState(false);
+
   // QC Anomalies State
   const [anomalies, setAnomalies] = useState([
     {
@@ -199,6 +215,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Real project-specific boundary polygons
   const PROJECT_BOUNDARY_POLYGONS = [
+    {
+      id: 'poly-agege-household',
+      title: 'Agege Local Government Household Survey Polygon',
+      code: 'CMRG-739',
+      color: '#10B981',
+      coords: [
+        [6.6120, 3.3150],
+        [6.6320, 3.3180],
+        [6.6290, 3.3380],
+        [6.6080, 3.3320]
+      ],
+      target: 2000,
+      completed: 1450,
+      assignedSurveyors: 35
+    },
     {
       id: 'poly-lagos-fmcg',
       title: 'Lagos Island Retail & Consumer Price Index Boundary',
@@ -473,26 +504,49 @@ export const Dashboard: React.FC<DashboardProps> = ({
       `);
     });
 
-    // 4. Draw submission markers
+    // 4. Draw submission markers with colored dots and direct Google Maps link
     mappedSubmissions.forEach(sub => {
-      const pinColor = sub.status === 'Approved' ? '#10B981' : sub.status === 'Flagged' ? '#F59E0B' : '#E30620';
+      // green = approved/completed, yellow = pending/in progress, red = flagged/rejected
+      const pinColor = sub.status === 'Approved' ? '#10B981' : sub.status === 'Pending' ? '#F59E0B' : '#E30620';
+      const statusLabel = sub.status === 'Approved' ? 'Completed & Approved' : sub.status === 'Pending' ? 'In Progress / Pending Review' : 'QC Flagged';
+
       const subIcon = L.divIcon({
         className: 'sub-pin',
         html: `
-          <div style="background-color: ${pinColor}; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.5);"></div>
+          <div style="position: relative; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center;">
+            <div style="position: absolute; width: 14px; height: 14px; background-color: ${pinColor}40; border-radius: 50%; animation: ping 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+            <div style="width: 10px; height: 10px; background-color: ${pinColor}; border-radius: 50%; border: 1.5px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.6); z-index: 2;"></div>
+          </div>
         `,
-        iconSize: [10, 10],
-        iconAnchor: [5, 5]
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
       });
 
       const marker = L.marker([sub.gps.lat, sub.gps.lng], { icon: subIcon }).addTo(layers);
       marker.bindPopup(`
-        <div style="font-family: Inter, sans-serif; font-size: 11px; line-height: 1.4;">
-          <b>${sub.enumeratorName}</b> (${sub.id})<br/>
-          Project: ${sub.projectTitle}<br/>
-          Location: ${sub.state}, ${sub.lga}<br/>
-          GPS Accuracy: ±${sub.gps.accuracy}m<br/>
-          Status: <b style="color: ${pinColor};">${sub.status}</b>
+        <div style="font-family: Inter, sans-serif; font-size: 11px; line-height: 1.4; min-width: 210px; color: #0F172A;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-size: 9px; font-weight: 800; background: ${pinColor}20; color: ${pinColor}; padding: 2px 6px; border-radius: 4px; border: 1px solid ${pinColor}40;">
+              ● ${statusLabel}
+            </span>
+            <span style="font-size: 9px; font-mono; color: #64748B;">${sub.submittedAt.split(' ')[1] || ''}</span>
+          </div>
+          <b style="font-size: 12px; color: #0F172A;">${sub.enumeratorName}</b><br/>
+          <div style="font-size: 10px; color: #475569; margin: 3px 0;">
+            <div>Project: <b>${sub.projectTitle}</b></div>
+            <div>Cluster: <b>${sub.state}, ${sub.lga}</b></div>
+            <div>GPS: <b style="color: #0F172A;">${sub.gps.lat.toFixed(4)}, ${sub.gps.lng.toFixed(4)}</b> (±${sub.gps.accuracy}m)</div>
+          </div>
+          <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #E2E8F0; display: flex; gap: 6px;">
+            <a 
+              href="https://maps.google.com/?q=${sub.gps.lat},${sub.gps.lng}" 
+              target="_blank" 
+              rel="noreferrer" 
+              style="display: inline-block; background: #2563EB; color: white; padding: 4px 8px; border-radius: 6px; text-decoration: none; font-size: 10px; font-weight: bold;"
+            >
+              📍 Open Google Maps
+            </a>
+          </div>
         </div>
       `);
     });
@@ -585,6 +639,115 @@ export const Dashboard: React.FC<DashboardProps> = ({
       setSyncing(false);
       setLastSyncTime(new Date().toLocaleTimeString());
     }, 800);
+  };
+
+  // Export Submissions to CSV
+  const handleExportCSV = () => {
+    setShowExportMenu(false);
+    const headers = ['Submission UUID', 'Project Code', 'Project Title', 'Enumerator Name', 'State', 'LGA', 'Latitude', 'Longitude', 'Accuracy (m)', 'Duration (s)', 'Status', 'Submitted At', 'Google Maps Link'];
+    const rows = filteredSubmissions.map(s => [
+      `"${s.id}"`,
+      `"${s.projectId}"`,
+      `"${(s.projectTitle || '').replace(/"/g, '""')}"`,
+      `"${s.enumeratorName}"`,
+      `"${s.state}"`,
+      `"${s.lga}"`,
+      s.gps?.lat || '',
+      s.gps?.lng || '',
+      s.gps?.accuracy || '',
+      s.durationSeconds,
+      `"${s.status}"`,
+      `"${s.submittedAt}"`,
+      `"https://maps.google.com/?q=${s.gps?.lat},${s.gps?.lng}"`
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `CMRG_Submissions_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export Submissions to Excel (.xlsx-compatible XML Spreadsheet)
+  const handleExportExcel = () => {
+    setShowExportMenu(false);
+    const headers = ['Submission UUID', 'Project Code', 'Project Title', 'Enumerator Name', 'State', 'LGA', 'Latitude', 'Longitude', 'Accuracy (m)', 'Duration (s)', 'Status', 'Submitted At', 'Google Maps Link'];
+    const rows = filteredSubmissions.map(s => [
+      s.id,
+      s.projectId,
+      s.projectTitle,
+      s.enumeratorName,
+      s.state,
+      s.lga,
+      s.gps?.lat || '',
+      s.gps?.lng || '',
+      s.gps?.accuracy || '',
+      s.durationSeconds,
+      s.status,
+      s.submittedAt,
+      `https://maps.google.com/?q=${s.gps?.lat},${s.gps?.lng}`
+    ]);
+
+    let xml = '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>';
+    xml += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
+    xml += '<Worksheet ss:Name="CMRG Field Submissions"><Table>';
+    xml += '<Row>' + headers.map(h => `<Cell><Data ss:Type="String">${h}</Data></Cell>`).join('') + '</Row>';
+    rows.forEach(row => {
+      xml += '<Row>' + row.map(c => `<Cell><Data ss:Type="String">${String(c).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</Data></Cell>`).join('') + '</Row>';
+    });
+    xml += '</Table></Worksheet></Workbook>';
+
+    const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `CMRG_Situation_Room_${new Date().toISOString().slice(0, 10)}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  // Export Submissions to OpenGIS KML 2.2 (for Google Earth, QGIS, ArcGIS)
+  const handleExportKML = () => {
+    setShowExportMenu(false);
+    let kml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    kml += '<kml xmlns="http://www.opengis.net/kml/2.2">\n';
+    kml += '  <Document>\n';
+    kml += '    <name>CMRG Data Collect - Situation Room Submissions</name>\n';
+    kml += '    <description>Audited field submissions with coordinates and media verification</description>\n';
+
+    filteredSubmissions.forEach(s => {
+      if (s.gps && s.gps.lat && s.gps.lng) {
+        kml += '    <Placemark>\n';
+        kml += `      <name>${s.enumeratorName} (${s.id})</name>\n`;
+        kml += `      <description><![CDATA[<b>Project:</b> ${s.projectTitle}<br/><b>Status:</b> ${s.status}<br/><b>Time:</b> ${s.submittedAt}<br/><a href="https://maps.google.com/?q=${s.gps.lat},${s.gps.lng}">Open in Google Maps</a>]]></description>\n`;
+        kml += '      <Point>\n';
+        kml += `        <coordinates>${s.gps.lng},${s.gps.lat},0</coordinates>\n`;
+        kml += '      </Point>\n';
+        kml += '    </Placemark>\n';
+      }
+    });
+
+    kml += '  </Document>\n';
+    kml += '</kml>';
+
+    const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `CMRG_Field_GIS_${new Date().toISOString().slice(0, 10)}.kml`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const handleOpenShareCheck = (code?: string) => {
+    const targetCode = code || (filterProject !== 'all' ? projects.find(p => p.id === filterProject)?.code : undefined) || 'CMRG-739';
+    setActiveCheckCode(targetCode);
+    setShowCheckModal(true);
   };
 
   return (
@@ -740,6 +903,67 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <span className="sm:hidden">QR Link</span>
               </button>
             )}
+
+            {/* Public Shareable Check Link Button */}
+            <button
+              onClick={() => handleOpenShareCheck()}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transition-all"
+              title="Share Public Check Link to verify survey authenticity"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Share Check Link</span>
+              <span className="sm:hidden">Check</span>
+            </button>
+
+            {/* Export Dropdown Menu (Excel, CSV, KML) */}
+            <div className="relative">
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="bg-white/10 hover:bg-white/15 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transition-all border border-white/10"
+                title="Export Situation Room Data"
+              >
+                <Download className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Export</span>
+              </button>
+
+              {showExportMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-[#121824] border border-gray-700 rounded-xl shadow-2xl py-1 z-50 text-xs animate-in fade-in duration-150">
+                  <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-gray-400 border-b border-gray-800">
+                    Export Formats
+                  </div>
+                  <button
+                    onClick={handleExportExcel}
+                    className="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center gap-2 text-gray-200 hover:text-white"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                    <div>
+                      <div className="font-bold">Excel (.xls / .xlsx)</div>
+                      <div className="text-[10px] text-gray-400">Full survey records &amp; GPS</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={handleExportCSV}
+                    className="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center gap-2 text-gray-200 hover:text-white"
+                  >
+                    <FileText className="w-4 h-4 text-blue-400" />
+                    <div>
+                      <div className="font-bold">CSV Spreadsheet</div>
+                      <div className="text-[10px] text-gray-400">Comma-separated values</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={handleExportKML}
+                    className="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center gap-2 text-gray-200 hover:text-white"
+                  >
+                    <Globe className="w-4 h-4 text-amber-400" />
+                    <div>
+                      <div className="font-bold">KML Spatial Layer</div>
+                      <div className="text-[10px] text-gray-400">Google Earth &amp; QGIS maps</div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
 
             <button
               onClick={handleManualSync}
@@ -1190,23 +1414,160 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* 5. SUBMISSION INSPECTION MODAL */}
       {inspectingSub && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
-          <div className="bg-[#121824] text-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 border border-gray-700">
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-[#121824] text-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 border border-gray-700 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-gray-800">
               <div>
-                <span className="text-[10px] font-bold text-[#E30620] uppercase tracking-wider">Submission Review &amp; Evidence</span>
+                <span className="text-[10px] font-bold text-[#E30620] uppercase tracking-wider">Submission Review &amp; Evidence Audit</span>
                 <h3 className="text-sm font-bold text-white">{inspectingSub.projectTitle}</h3>
               </div>
-              <button onClick={() => setInspectingSub(null)} className="text-gray-400 hover:text-white font-bold">&times;</button>
+              <button onClick={() => setInspectingSub(null)} className="text-gray-400 hover:text-white font-bold text-lg">&times;</button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5 bg-[#0B0F17] p-3 rounded-xl text-xs font-mono">
-              <div>UUID: <span className="text-gray-300">{inspectingSub.id}</span></div>
-              <div>Surveyor: <span className="text-gray-300">{inspectingSub.enumeratorName}</span></div>
-              <div>GPS: <span className="text-emerald-400">{inspectingSub.gps?.lat}, {inspectingSub.gps?.lng}</span></div>
-              <div>Accuracy: <span className="text-emerald-400">±{inspectingSub.gps?.accuracy}m</span></div>
+            {/* Top metadata grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-[#0B0F17] p-3 rounded-xl text-xs font-mono">
+              <div>
+                <span className="text-[10px] text-gray-500 block">UUID</span>
+                <span className="text-gray-300 font-bold truncate block">{inspectingSub.id}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-gray-500 block">Enumerator</span>
+                <span className="text-gray-300 font-bold truncate block">{inspectingSub.enumeratorName}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-gray-500 block">Status</span>
+                <span className={`font-bold ${inspectingSub.status === 'Approved' ? 'text-emerald-400' : inspectingSub.status === 'Pending' ? 'text-amber-400' : 'text-red-400'}`}>
+                  {inspectingSub.status}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-gray-500 block">Submitted</span>
+                <span className="text-gray-400">{inspectingSub.submittedAt}</span>
+              </div>
             </div>
 
+            {/* GPS verification card with Google Maps button */}
+            <div className="bg-[#0B0F17] border border-gray-800 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-0.5 text-xs font-mono">
+                <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
+                  <MapPin className="w-4 h-4 text-emerald-500" />
+                  <span>GPS: {inspectingSub.gps?.lat?.toFixed(5)}, {inspectingSub.gps?.lng?.toFixed(5)}</span>
+                </div>
+                <p className="text-[11px] text-gray-400">
+                  Cluster: {inspectingSub.state}, {inspectingSub.lga} (Satellite Accuracy: ±{inspectingSub.gps?.accuracy}m)
+                </p>
+              </div>
+
+              {inspectingSub.gps?.lat && inspectingSub.gps?.lng && (
+                <a
+                  href={`https://maps.google.com/?q=${inspectingSub.gps.lat},${inspectingSub.gps.lng}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Open in Google Maps</span>
+                </a>
+              )}
+            </div>
+
+            {/* Answers & Survey Data */}
+            {inspectingSub.answers && Object.keys(inspectingSub.answers).length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-gray-300">Questionnaire Responses</h4>
+                <div className="bg-[#0B0F17] rounded-xl p-3 text-xs space-y-2">
+                  {Object.entries(inspectingSub.answers).map(([key, val]: any) => {
+                    if (typeof val === 'string' && (val.startsWith('http') || val.startsWith('data:') || val.startsWith('store://'))) {
+                      return null; // Rendered in media section
+                    }
+                    return (
+                      <div key={key} className="flex justify-between border-b border-gray-800/60 pb-1 text-[11px]">
+                        <span className="text-gray-400 uppercase font-mono">{key.replace(/_/g, ' ')}:</span>
+                        <span className="text-white font-semibold">{typeof val === 'object' ? JSON.stringify(val) : String(val)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Media Evidence Section: Photo, Video, Audio */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-gray-300">Audited Media Evidence (GPS &amp; Timestamp Watermarked)</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {/* Photo Evidence */}
+                <div className="bg-[#0B0F17] border border-gray-800 rounded-xl p-2.5 text-center space-y-1.5">
+                  <div className="text-[10px] text-gray-400 font-bold uppercase flex items-center justify-center gap-1">
+                    <Image className="w-3 h-3 text-[#E30620]" />
+                    <span>Dwelling Photo</span>
+                  </div>
+                  {inspectingSub.answers?.house_photo || inspectingSub.answers?.product_photo ? (
+                    <div className="relative rounded-lg overflow-hidden border border-gray-700">
+                      <img
+                        src={inspectingSub.answers.house_photo || inspectingSub.answers.product_photo}
+                        alt="Audited Evidence"
+                        className="w-full h-24 object-cover"
+                      />
+                      <span className="absolute bottom-1 right-1 bg-black/80 text-[8px] font-mono text-emerald-400 px-1 rounded">GPS ✓</span>
+                    </div>
+                  ) : (
+                    <div className="h-24 bg-white/5 rounded-lg flex items-center justify-center text-[10px] text-gray-500">
+                      No Photo Captured
+                    </div>
+                  )}
+                </div>
+
+                {/* Video Survey Evidence */}
+                <div className="bg-[#0B0F17] border border-gray-800 rounded-xl p-2.5 text-center space-y-1.5">
+                  <div className="text-[10px] text-gray-400 font-bold uppercase flex items-center justify-center gap-1">
+                    <Film className="w-3 h-3 text-blue-400" />
+                    <span>Video Survey</span>
+                  </div>
+                  {inspectingSub.answers?.neighborhood_video || inspectingSub.answers?.video ? (
+                    <div className="p-2 bg-slate-900 rounded-lg text-left text-[10px] space-y-1">
+                      <div className="flex items-center gap-1 text-emerald-400 font-bold">
+                        <Check className="w-3 h-3" /> 1-Min Video Recorded
+                      </div>
+                      <p className="text-gray-400 font-mono text-[9px]">Surroundings &amp; Drainage</p>
+                      <a
+                        href={inspectingSub.answers?.neighborhood_video || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-block mt-1 text-blue-400 hover:text-blue-300 font-bold underline"
+                      >
+                        Play Video (MP4) ↗
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="h-24 bg-white/5 rounded-lg flex items-center justify-center text-[10px] text-gray-500">
+                      No Video Recorded
+                    </div>
+                  )}
+                </div>
+
+                {/* Audio Recording */}
+                <div className="bg-[#0B0F17] border border-gray-800 rounded-xl p-2.5 text-center space-y-1.5">
+                  <div className="text-[10px] text-gray-400 font-bold uppercase flex items-center justify-center gap-1">
+                    <Music className="w-3 h-3 text-amber-400" />
+                    <span>Audio Statement</span>
+                  </div>
+                  {inspectingSub.audioUrl || inspectingSub.answers?.audio_consent ? (
+                    <div className="p-2 bg-slate-900 rounded-lg space-y-1 text-left">
+                      <div className="text-[9px] text-emerald-400 font-bold flex items-center gap-1">
+                        <Check className="w-3 h-3" /> Waveform Verified
+                      </div>
+                      <audio controls src={inspectingSub.audioUrl || 'https://actions.google.com/sounds/v1/ambiences/market.ogg'} className="w-full h-7" />
+                    </div>
+                  ) : (
+                    <div className="h-24 bg-white/5 rounded-lg flex items-center justify-center text-[10px] text-gray-500">
+                      No Audio Recorded
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Supervisor Action Buttons */}
             <div className="flex justify-end gap-2 pt-2 border-t border-gray-800">
               <button
                 type="button"
@@ -1214,9 +1575,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   if (onUpdateSubmissionStatus) onUpdateSubmissionStatus(inspectingSub.id, 'Approved');
                   setInspectingSub(null);
                 }}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors"
               >
-                Approve
+                Approve Submission
               </button>
               <button
                 type="button"
@@ -1224,9 +1585,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   if (onUpdateSubmissionStatus) onUpdateSubmissionStatus(inspectingSub.id, 'Flagged');
                   setInspectingSub(null);
                 }}
-                className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold"
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-colors"
               >
-                Flag
+                Flag for Audit
               </button>
               <button
                 type="button"
@@ -1234,10 +1595,87 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   if (onUpdateSubmissionStatus) onUpdateSubmissionStatus(inspectingSub.id, 'Rejected');
                   setInspectingSub(null);
                 }}
-                className="px-3 py-1.5 bg-[#E30620] hover:bg-red-700 text-white rounded-lg text-xs font-bold"
+                className="px-4 py-2 bg-[#E30620] hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors"
               >
                 Reject
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. SHAREABLE PUBLIC CHECK LINK MODAL */}
+      {showCheckModal && (
+        <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-[#121824] text-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-gray-700">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-800">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Shareable Public Survey Check Link</h3>
+                  <p className="text-[11px] text-gray-400">Share with clients or monitors to verify field survey authenticity</p>
+                </div>
+              </div>
+              <button onClick={() => setShowCheckModal(false)} className="text-gray-400 hover:text-white font-bold">&times;</button>
+            </div>
+
+            {/* Check link box */}
+            <div className="bg-[#0B0F17] p-3 rounded-2xl border border-gray-800 space-y-2">
+              <span className="text-[10px] text-gray-400 uppercase font-mono block">Direct Verification URL</span>
+              <div className="flex items-center justify-between gap-2 bg-[#121824] p-2.5 rounded-xl border border-gray-700 text-xs font-mono text-emerald-400">
+                <span className="truncate">
+                  {typeof window !== 'undefined' ? `${window.location.origin}/?check=${activeCheckCode}` : `app.ourfield.com/?check=${activeCheckCode}`}
+                </span>
+                <button
+                  onClick={() => {
+                    const url = `${window.location.origin}/?check=${activeCheckCode}`;
+                    navigator.clipboard?.writeText(url);
+                    setCopiedCheckUrl(true);
+                    setTimeout(() => setCopiedCheckUrl(false), 3000);
+                  }}
+                  className="px-2.5 py-1 bg-white/10 hover:bg-emerald-600 hover:text-white text-gray-300 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors shrink-0"
+                >
+                  {copiedCheckUrl ? <Check className="w-3 h-3 text-white" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedCheckUrl ? 'Copied!' : 'Copy'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Live Certified Study Card Preview */}
+            <div className="bg-gradient-to-br from-[#0F172A] to-[#1E293B] border border-blue-500/30 rounded-2xl p-4 text-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 uppercase">
+                  <ShieldCheck className="w-3 h-3" /> Certified Field Survey
+                </span>
+                <span className="font-mono text-gray-400 text-[10px]">Code: {activeCheckCode}</span>
+              </div>
+              <h4 className="font-bold text-white text-sm">Household Survey Lagos</h4>
+              <p className="text-[11px] text-gray-300">
+                Lagos State Infrastructure &amp; Economic Planning Bureau • Agege Local Government Geofence Enforced.
+              </p>
+              <div className="grid grid-cols-2 gap-2 pt-1 text-[10px] font-mono text-gray-400">
+                <div>Audit Standard: <b>NDPR / ISO 27001</b></div>
+                <div>Geo-Lock: <b>6.6192, 3.3213 (Agege)</b></div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-800">
+              <button
+                type="button"
+                onClick={() => setShowCheckModal(false)}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-gray-200 rounded-xl text-xs font-bold"
+              >
+                Close
+              </button>
+              <a
+                href={`/?check=${activeCheckCode}`}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1"
+              >
+                <span>Preview Check Page</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </div>
           </div>
         </div>

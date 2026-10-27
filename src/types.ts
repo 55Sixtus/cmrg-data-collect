@@ -86,6 +86,7 @@ export type QuestionType =
   | 'select_multiple'
   | 'gps'
   | 'photo'
+  | 'video'
   | 'audio'
   | 'barcode'
   | 'date'

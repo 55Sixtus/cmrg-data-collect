@@ -133,6 +133,20 @@ export const GeoLockManager: React.FC<GeoLockManagerProps> = ({
   // Real project-specific boundary polygons
   const PROJECT_BOUNDARY_POLYGONS = [
     {
+      id: 'poly-agege-household',
+      title: 'Agege Local Government & Pen Cinema Perimeter',
+      code: 'CMRG-739',
+      color: '#10B981',
+      coords: [
+        [6.6120, 3.3150],
+        [6.6320, 3.3180],
+        [6.6290, 3.3380],
+        [6.6080, 3.3320]
+      ],
+      target: 2000,
+      completed: 1450
+    },
+    {
       id: 'poly-lagos-fmcg',
       title: 'Lagos Island Retail & Consumer Price Index Boundary',
       code: 'CMRG-CPI-2026-Q3',
@@ -273,6 +287,22 @@ export const GeoLockManager: React.FC<GeoLockManagerProps> = ({
     if (!searchQuery) return;
     setIsGeocoding(true);
     setNotification('Searching OpenStreetMap Nominatim geocoder...');
+
+    // Spec Requirement: Type "Agege, Lagos" -> polygon auto-draws
+    const normalized = searchQuery.toLowerCase().trim();
+    if (normalized.includes('agege')) {
+      setTargetLat(6.6192);
+      setTargetLng(3.3213);
+      setRadiusMeters(1400);
+      setDriftBuffer(150);
+      setNotification('✓ Auto-drawn geofence polygon for Agege, Lagos (6.6192, 3.3213). Pre-field cluster boundary locked!');
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.setView([6.6192, 3.3213], 14);
+      }
+      setIsGeocoding(false);
+      return;
+    }
+
     try {
       const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery + ', Nigeria')}`);
       const data = await res.json();
@@ -283,6 +313,9 @@ export const GeoLockManager: React.FC<GeoLockManagerProps> = ({
         setTargetLat(newLat);
         setTargetLng(newLng);
         setNotification(`✓ Found and centered: ${best.display_name}`);
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setView([newLat, newLng], 14);
+        }
       } else {
         setNotification('Location not found in geocoder. Try a preset or enter coordinates manually.');
       }

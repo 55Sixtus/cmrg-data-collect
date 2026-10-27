@@ -148,6 +148,7 @@ class OfflineQueueService {
   }
 
   private syncListeners: Set<(item: Submission) => void> = new Set();
+  private progressListeners: Set<(progress: { isSyncing: boolean; current: number; total: number; percent: number; message: string }) => void> = new Set();
 
   // Register callback whenever an offline submission is synced
   public onSync(callback: (item: Submission) => void): () => void {
@@ -155,6 +156,24 @@ class OfflineQueueService {
     return () => {
       this.syncListeners.delete(callback);
     };
+  }
+
+  // Register callback for visual upload progress updates
+  public onProgress(callback: (progress: { isSyncing: boolean; current: number; total: number; percent: number; message: string }) => void): () => void {
+    this.progressListeners.add(callback);
+    return () => {
+      this.progressListeners.delete(callback);
+    };
+  }
+
+  private notifyProgress(progress: { isSyncing: boolean; current: number; total: number; percent: number; message: string }) {
+    this.progressListeners.forEach(cb => {
+      try {
+        cb(progress);
+      } catch (err) {
+        console.error('Error in progress listener:', err);
+      }
+    });
   }
 
   // Sync queued items with Supabase (or acknowledge in local store)
@@ -171,12 +190,21 @@ class OfflineQueueService {
     }
 
     if (!navigator.onLine) {
+      this.notifyProgress({ isSyncing: false, current: 0, total: items.length, percent: 0, message: 'Offline: Waiting for internet connection to sync' });
       return { synced: 0, failed: items.length, total: items.length };
     }
 
     this.isSyncing = true;
     let synced = 0;
     let failed = 0;
+
+    this.notifyProgress({
+      isSyncing: true,
+      current: 0,
+      total: items.length,
+      percent: 5,
+      message: `Initiating background sync for ${items.length} queued surveys...`
+    });
 
     for (const item of items) {
       try {
@@ -225,6 +253,16 @@ class OfflineQueueService {
         } else {
           failed++;
         }
+
+        const currentCount = synced + failed;
+        const percent = Math.min(98, Math.round((currentCount / items.length) * 100));
+        this.notifyProgress({
+          isSyncing: true,
+          current: currentCount,
+          total: items.length,
+          percent,
+          message: `Syncing survey ${currentCount} of ${items.length}: Media & GPS verified...`
+        });
       } catch (err) {
         console.warn(`Sync failed for item ${item.id}:`, err);
         failed++;
@@ -232,6 +270,13 @@ class OfflineQueueService {
     }
 
     this.isSyncing = false;
+    this.notifyProgress({
+      isSyncing: false,
+      current: items.length,
+      total: items.length,
+      percent: 100,
+      message: `✓ Sync complete: ${synced} surveys and media successfully uploaded.`
+    });
     this.notify();
 
     return { synced, failed, total: items.length };

@@ -2,6 +2,23 @@ import { Project, Questionnaire, Submission, Enumerator, AuditLog, FieldDeployme
 
 export const INITIAL_PROJECTS: Project[] = [
   {
+    id: 'proj-cmrg-739',
+    code: 'CMRG-739',
+    title: 'Household Survey Lagos',
+    client: 'Lagos State Ministry of Economic Planning & Infrastructure Bureau',
+    sector: 'Public Opinion',
+    status: 'Active',
+    startDate: '2026-10-15',
+    endDate: '2026-12-15',
+    targetInterviews: 2000,
+    completedInterviews: 1450,
+    rejectedInterviews: 18,
+    regions: ['Agege', 'Ikeja', 'Alimosho', 'Oshodi-Isolo', 'Surulere'],
+    assignedEnumeratorsCount: 35,
+    questionnaireId: 'quest-cmrg-739',
+    description: 'Comprehensive socio-economic household survey across Agege and Lagos metropolitan clusters covering demographics, power access, living conditions, infrastructure and consumer expenditure.'
+  },
+  {
     id: 'proj-1',
     code: 'CMRG-CPI-2026-Q3',
     title: 'National Consumer Goods Price Index & Inflation Tracker Q3',
@@ -90,6 +107,69 @@ export const INITIAL_PROJECTS: Project[] = [
 
 export const INITIAL_QUESTIONNAIRES: Questionnaire[] = [
   {
+    id: 'quest-cmrg-739',
+    title: 'Household Survey Lagos (CMRG-739)',
+    version: '1.0',
+    projectId: 'proj-cmrg-739',
+    updatedAt: '2026-10-26',
+    questions: [
+      { 
+        id: 'q_hh_name', 
+        variableName: 'household_head', 
+        label: 'Head of Household Full Name', 
+        type: 'text', 
+        required: true, 
+        hint: 'Enter respondent legal name as indicated on national identity or utility bill' 
+      },
+      { 
+        id: 'q_power_src', 
+        variableName: 'power_source', 
+        label: 'Primary Source of Electricity & Power', 
+        type: 'select_one', 
+        required: true, 
+        options: [
+          { id: 'p1', label: 'National Grid (DisCo / Metered)', value: 'grid_meter' },
+          { id: 'p2', label: 'Solar Inverter / Battery System', value: 'solar_inverter' },
+          { id: 'p3', label: 'Petrol / Diesel Generator (Private)', value: 'generator' },
+          { id: 'p4', label: 'Community / Neighborhood Shared Mini-Grid', value: 'shared_mini_grid' },
+          { id: 'p5', label: 'No Regular Electricity Access', value: 'none' }
+        ]
+      },
+      { 
+        id: 'q_photo_ext', 
+        variableName: 'house_photo', 
+        label: 'Household Exterior & Entrance Photo (GPS Watermarked)', 
+        type: 'photo', 
+        required: true, 
+        hint: 'Take clear photo of residential entrance with GPS watermark and timestamp' 
+      },
+      { 
+        id: 'q_video_street', 
+        variableName: 'neighborhood_video', 
+        label: 'Video Survey of Surrounding Street & Drainage (Max 1 min)', 
+        type: 'video', 
+        required: false, 
+        hint: 'Record up to 60 seconds showing road condition, drainage and public utility lines' 
+      },
+      { 
+        id: 'q_audio_stmt', 
+        variableName: 'audio_consent', 
+        label: 'Record Respondent Audio Statement & Consent', 
+        type: 'audio', 
+        required: false, 
+        hint: 'Inbuilt audio recorder with pause/resume and live waveform visualization' 
+      },
+      { 
+        id: 'q_gps_coord', 
+        variableName: 'dwelling_gps', 
+        label: 'Validate Precise Dwelling GPS Coordinates', 
+        type: 'gps', 
+        required: true, 
+        hint: 'High-accuracy satellite fix within Agege Lagos supervisor geofence' 
+      }
+    ]
+  },
+  {
     id: 'quest-1',
     title: 'Consumer Goods Price Index Questionnaire v2.4',
     version: '2.4',
@@ -147,6 +227,69 @@ export const INITIAL_QUESTIONNAIRES: Questionnaire[] = [
 ];
 
 export const INITIAL_SUBMISSIONS: Submission[] = [
+  {
+    id: 'sub-7391',
+    projectId: 'proj-cmrg-739',
+    projectTitle: 'Household Survey Lagos (CMRG-739)',
+    enumeratorId: 'CMRG-ENU-001',
+    enumeratorName: 'Amina Bello (Lagos North)',
+    state: 'Lagos',
+    lga: 'Agege',
+    gps: { lat: 6.6192, lng: 3.3213, accuracy: 2.4 },
+    durationSeconds: 245,
+    submittedAt: '2026-10-26 10:14:22',
+    status: 'Approved',
+    audioUrl: 'https://actions.google.com/sounds/v1/ambiences/market.ogg',
+    answers: {
+      household_head: 'Chief Adeleke Babatunde',
+      power_source: 'grid_meter',
+      house_photo: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=600&q=80',
+      neighborhood_video: 'store://media/videos/agege_street_walk_01.mp4',
+      audio_consent: 'store://media/audio/consent_adeleke.wav',
+      dwelling_gps: '6.6192, 3.3213 (Accuracy: ±2.4m)'
+    }
+  },
+  {
+    id: 'sub-7392',
+    projectId: 'proj-cmrg-739',
+    projectTitle: 'Household Survey Lagos (CMRG-739)',
+    enumeratorId: 'CMRG-ENU-001',
+    enumeratorName: 'Amina Bello (Lagos North)',
+    state: 'Lagos',
+    lga: 'Agege',
+    gps: { lat: 6.6215, lng: 3.3248, accuracy: 3.1 },
+    durationSeconds: 310,
+    submittedAt: '2026-10-26 11:05:40',
+    status: 'Pending',
+    audioUrl: 'https://actions.google.com/sounds/v1/ambiences/market.ogg',
+    answers: {
+      household_head: 'Mrs. Folashade Okonjo',
+      power_source: 'solar_inverter',
+      house_photo: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=600&q=80',
+      neighborhood_video: 'store://media/videos/agege_drainage_audit.mp4',
+      dwelling_gps: '6.6215, 3.3248 (Accuracy: ±3.1m)'
+    }
+  },
+  {
+    id: 'sub-7393',
+    projectId: 'proj-cmrg-739',
+    projectTitle: 'Household Survey Lagos (CMRG-739)',
+    enumeratorId: 'CMRG-ENU-002',
+    enumeratorName: 'Oluwaseun Adebayo',
+    state: 'Lagos',
+    lga: 'Agege',
+    gps: { lat: 6.6280, lng: 3.3180, accuracy: 18.5 },
+    durationSeconds: 95,
+    submittedAt: '2026-10-26 11:42:15',
+    status: 'Flagged',
+    flagReason: 'Speeder Alert: Survey completed in 95s (Minimum benchmark 180s)',
+    answers: {
+      household_head: 'Mr. Kehinde Shonubi',
+      power_source: 'generator',
+      house_photo: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=600&q=80',
+      dwelling_gps: '6.6280, 3.3180 (Accuracy: ±18.5m)'
+    }
+  },
   {
     id: 'sub-8921',
     projectId: 'proj-1',
@@ -461,6 +604,21 @@ export const INITIAL_CLOUD_DEPLOYMENTS: CloudDeploymentRecord[] = [
 ];
 
 export const INITIAL_GEOFENCES = [
+  {
+    id: 'gf-agege',
+    projectId: 'proj-cmrg-739',
+    name: 'Agege Local Government & Pen Cinema Cluster',
+    state: 'Lagos',
+    lga: 'Agege',
+    lat: 6.6192,
+    lng: 3.3213,
+    radiusMeters: 1400,
+    driftBufferMeters: 150,
+    targetInterviews: 200,
+    assignedEnumerator: 'CMRG-ENU-001 (Amina Bello)',
+    active: true,
+    createdAt: '2026-10-26 08:00'
+  },
   {
     id: 'gf-1',
     projectId: 'proj-1',

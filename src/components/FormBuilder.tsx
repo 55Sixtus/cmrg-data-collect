@@ -653,8 +653,9 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                     <option value="select_one">Select One (Radio)</option>
                     <option value="select_multiple">Select Multiple (Checkbox)</option>
                     <option value="gps">GPS Location Capture</option>
-                    <option value="photo">Photo Capture</option>
-                    <option value="audio">Audio Recording</option>
+                    <option value="photo">Photo Capture (GPS Watermarked)</option>
+                    <option value="video">Video Recording (Up to 1 min)</option>
+                    <option value="audio">Audio Recording (Waveform + Pause/Resume)</option>
                     <option value="date">Date / Time</option>
                   </select>
                 </div>
