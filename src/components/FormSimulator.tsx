@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Questionnaire, Project, Submission } from '../types';
 import { offlineQueue } from '../services/offlineQueue';
+import { QuestionRenderer } from './QuestionRenderer';
 import { 
   PlaySquare, 
   Smartphone, 
@@ -232,109 +233,16 @@ export const FormSimulator: React.FC<FormSimulatorProps> = ({
               </div>
 
               {/* Input Control Based on Type */}
+              {/* Universal Input Control Based on Type */}
               <div className="py-2">
-                {currentQ.type === 'text' && (
-                  <input
-                    type="text"
-                    placeholder="Type response here..."
-                    value={answers[currentQ.variableName] || ''}
-                    onChange={(e) => handleAnswerChange(currentQ.variableName, e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-300 rounded-xl p-3 text-xs text-[#1B2430] focus:outline-none focus:ring-2 focus:ring-[#C8202F]/20 focus:border-[#C8202F]"
-                  />
-                )}
-
-                {(currentQ.type === 'integer' || currentQ.type === 'decimal') && (
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={answers[currentQ.variableName] || ''}
-                    onChange={(e) => handleAnswerChange(currentQ.variableName, Number(e.target.value))}
-                    className="w-full bg-gray-50 border border-gray-300 rounded-xl p-3 text-xs text-[#1B2430] focus:outline-none focus:ring-2 focus:ring-[#C8202F]/20 focus:border-[#C8202F]"
-                  />
-                )}
-
-                {currentQ.type === 'select_one' && (
-                  <div className="space-y-2">
-                    {currentQ.options?.map((opt) => (
-                      <label
-                        key={opt.id}
-                        onClick={() => handleAnswerChange(currentQ.variableName, opt.label)}
-                        className={`flex items-center justify-between p-3 rounded-xl border text-xs font-medium cursor-pointer transition-all ${
-                          answers[currentQ.variableName] === opt.label
-                            ? 'border-[#C8202F] bg-red-50/50 text-[#C8202F]'
-                            : 'border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <span>{opt.label}</span>
-                        <input
-                          type="radio"
-                          name={currentQ.variableName}
-                          checked={answers[currentQ.variableName] === opt.label}
-                          onChange={() => {}}
-                          className="text-[#C8202F] focus:ring-[#C8202F]"
-                        />
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                {currentQ.type === 'gps' && (
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center space-y-3">
-                    <div className="w-10 h-10 bg-red-50 text-[#C8202F] rounded-full flex items-center justify-center mx-auto shadow-xs">
-                      <MapPin className="w-5 h-5 animate-bounce" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-[#17243A]">GPS Satellite Lock Acquired</p>
-                      <p className="text-[11px] text-gray-500 font-mono mt-1">Lat: {simulatedGPS.lat}, Lng: {simulatedGPS.lng}</p>
-                      <span className="text-[10px] text-emerald-600 font-semibold block mt-0.5">Accuracy: ±{simulatedGPS.accuracy} meters</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setSimulatedGPS({ lat: 6.5244 + (Math.random() - 0.5) * 0.01, lng: 3.3792 + (Math.random() - 0.5) * 0.01, accuracy: 2.1 })}
-                      className="text-xs font-semibold text-[#C8202F] hover:underline"
-                    >
-                      Re-calibrate GPS
-                    </button>
-                  </div>
-                )}
-
-                {currentQ.type === 'photo' && (
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center space-y-3">
-                    <div className="w-12 h-12 bg-red-50 text-[#C8202F] rounded-full flex items-center justify-center mx-auto shadow-xs">
-                      <Camera className="w-6 h-6" />
-                    </div>
-                    <p className="text-xs font-semibold text-[#17243A]">Camera ready for audit photo</p>
-                    <button
-                      type="button"
-                      onClick={() => handleAnswerChange(currentQ.variableName, 'https://images.unsplash.com/photo-1586885284437-6077974cfcf0?auto=format&fit=crop&w=600&q=80')}
-                      className="bg-[#17243A] text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs"
-                    >
-                      Capture Sample Photo
-                    </button>
-                    {answers[currentQ.variableName] && (
-                      <span className="text-[10px] text-emerald-600 font-semibold block">Photo attached successfully</span>
-                    )}
-                  </div>
-                )}
-
-                {currentQ.type === 'audio' && (
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center space-y-3">
-                    <div className="w-12 h-12 bg-red-50 text-[#C8202F] rounded-full flex items-center justify-center mx-auto shadow-xs">
-                      <Mic className="w-6 h-6 animate-pulse" />
-                    </div>
-                    <p className="text-xs font-semibold text-[#17243A]">Audio Consent Recorder</p>
-                    <button
-                      type="button"
-                      onClick={() => handleAnswerChange(currentQ.variableName, 'audio_recorded_ok.ogg')}
-                      className="bg-[#C8202F] text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs"
-                    >
-                      Record 10s Audio Snippet
-                    </button>
-                    {answers[currentQ.variableName] && (
-                      <span className="text-[10px] text-emerald-600 font-semibold block">Audio recorded successfully</span>
-                    )}
-                  </div>
-                )}
+                <QuestionRenderer
+                  question={currentQ}
+                  index={currentStep}
+                  value={answers[currentQ.variableName]}
+                  allAnswers={answers}
+                  onChange={(val) => handleAnswerChange(currentQ.variableName, val)}
+                  gpsCoords={simulatedGPS}
+                />
               </div>
 
               {/* Navigation buttons */}

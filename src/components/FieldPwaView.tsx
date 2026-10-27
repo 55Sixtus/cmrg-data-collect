@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Project, Questionnaire, Submission, Enumerator, GeofenceZone } from '../types';
 import { offlineQueue } from '../services/offlineQueue';
+import { QuestionRenderer } from './QuestionRenderer';
+import { LogicEngine } from '../services/questionnaireLogicEngine';
 import { 
   Smartphone, 
   MapPin, 
@@ -462,8 +464,12 @@ export const FieldPwaView: React.FC<FieldPwaViewProps> = ({
     setCurrentQIndex(0);
   };
 
-  const handleAnswerChange = (qId: string, value: any) => {
-    setAnswers(prev => ({ ...prev, [qId]: value }));
+  const handleAnswerChange = (qId: string, value: any, varName?: string) => {
+    setAnswers(prev => {
+      const updated = { ...prev, [qId]: value };
+      if (varName) updated[varName] = value;
+      return updated;
+    });
   };
 
   const handleSimulateMediaCapture = (type: 'photo' | 'audio' | 'selfie') => {
@@ -926,293 +932,273 @@ export const FieldPwaView: React.FC<FieldPwaViewProps> = ({
 
           {/* Questionnaire Questions */}
           <div className="space-y-6">
-            {currentQuestionnaire.questions.map((q, index) => (
-              <div key={q.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#17243A]">
-                    Q{index + 1}. {q.label} {q.required && <span className="text-[#C8202F]">*</span>}
-                  </label>
-                  <span className="text-[10px] font-mono bg-white px-2 py-0.5 rounded border border-gray-200 text-gray-500">{q.type}</span>
-                </div>
-                {q.hint && <p className="text-[11px] text-gray-500">{q.hint}</p>}
+            {currentQuestionnaire.questions.map((q, index) => {
+              // Evaluate skip logic & relevance condition
+              if (!LogicEngine.isQuestionRelevant(q, answers)) {
+                return null;
+              }
 
-                {/* Input Fields by Type */}
-                {q.type === 'text' && (
-                  <input
-                    type="text"
-                    value={answers[q.id] || ''}
-                    onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                    placeholder="Enter answer..."
-                    className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-xs text-[#17243A]"
-                  />
-                )}
-
-                {q.type === 'integer' && (
-                  <input
-                    type="number"
-                    value={answers[q.id] || ''}
-                    onChange={(e) => handleAnswerChange(q.id, parseInt(e.target.value) || 0)}
-                    placeholder="Enter number..."
-                    className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-xs text-[#17243A]"
-                  />
-                )}
-
-                {q.type === 'select_one' && (
-                  <select
-                    value={answers[q.id] || ''}
-                    onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                    className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-xs text-[#17243A]"
-                  >
-                    <option value="">Select an option...</option>
-                    {q.options?.map(opt => (
-                      <option key={opt.id} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                )}
-
-                {q.type === 'gps' && (
-                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-950 p-3.5 rounded-xl text-xs space-y-2">
-                    <div className="flex items-center justify-between font-mono">
-                      <span className="font-bold flex items-center gap-1.5 text-emerald-800">
-                        <MapPin className="w-4 h-4 text-emerald-600" />
-                        <span>GPS Coordinates: {gpsLat.toFixed(4)}, {gpsLng.toFixed(4)}</span>
-                      </span>
-                      <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
-                        Accuracy: ±{gpsAccuracy}m
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] text-emerald-800 pt-1 border-t border-emerald-200/60">
-                      <span>✓ High-Accuracy Satellite Lock Acquired</span>
-                      <a
-                        href={`https://maps.google.com/?q=${gpsLat},${gpsLng}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-blue-700 hover:text-blue-900 font-bold underline flex items-center gap-1"
-                      >
-                        Verify on Google Maps ↗
-                      </a>
-                    </div>
-                  </div>
-                )}
-
-                {/* Photo Capture with Auto GPS Watermark & Timestamp */}
-                {q.type === 'photo' && (
-                  <div className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-3">
+              // Special hardware sensor handlers: photo, video, audio
+              if (q.type === 'photo') {
+                return (
+                  <div key={q.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-                        <Camera className="w-4 h-4 text-[#C8202F]" />
-                        <span>Camera Photo with GPS Watermarking</span>
-                      </span>
-                      {answers[q.id]?.url || photoWatermarked ? (
-                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-                          <Check className="w-3 h-3" /> Photo Watermarked ✓
-                        </span>
-                      ) : null}
+                      <label className="text-xs font-bold text-[#17243A]">
+                        Q{index + 1}. {LogicEngine.pipeText(q.label, answers)} {q.required && <span className="text-[#C8202F]">*</span>}
+                      </label>
+                      <span className="text-[10px] font-mono bg-white px-2 py-0.5 rounded border border-gray-200 text-gray-500">photo</span>
                     </div>
+                    {q.hint && <p className="text-[11px] text-gray-500">{q.hint}</p>}
 
-                    {answers[q.id]?.url || photoWatermarked ? (
-                      <div className="space-y-2">
-                        <div className="relative rounded-xl overflow-hidden border border-gray-300 max-w-sm">
-                          <img
-                            src={answers[q.id]?.url || photoWatermarked}
-                            alt="GPS Watermarked Field Photo"
-                            className="w-full h-44 object-cover"
-                          />
-                          <div className="absolute bottom-0 inset-x-0 bg-black/80 backdrop-blur-xs p-2 text-[10px] font-mono text-emerald-400">
-                            <div>📍 LAT: {gpsLat.toFixed(4)} | LNG: {gpsLng.toFixed(4)} (±{gpsAccuracy}m)</div>
-                            <div className="text-gray-300">📅 {new Date().toISOString().substring(0, 19).replace('T', ' ')} UTC • {enumeratorId}</div>
+                    <div className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                          <Camera className="w-4 h-4 text-[#C8202F]" />
+                          <span>Camera Photo with GPS Watermarking</span>
+                        </span>
+                        {answers[q.id]?.url || photoWatermarked ? (
+                          <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                            <Check className="w-3 h-3" /> Photo Watermarked ✓
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {answers[q.id]?.url || photoWatermarked ? (
+                        <div className="space-y-2">
+                          <div className="relative rounded-xl overflow-hidden border border-gray-300 max-w-sm">
+                            <img
+                              src={answers[q.id]?.url || photoWatermarked}
+                              alt="GPS Watermarked Field Photo"
+                              className="w-full h-44 object-cover"
+                            />
+                            <div className="absolute bottom-0 inset-x-0 bg-black/80 backdrop-blur-xs p-2 text-[10px] font-mono text-emerald-400">
+                              <div>📍 LAT: {gpsLat.toFixed(4)} | LNG: {gpsLng.toFixed(4)} (±{gpsAccuracy}m)</div>
+                              <div className="text-gray-300">📅 {new Date().toISOString().substring(0, 19).replace('T', ' ')} UTC • {enumeratorId}</div>
+                            </div>
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => handleCapturePhotoWithWatermark(q.id)}
+                            className="text-xs font-semibold text-gray-600 hover:text-black flex items-center gap-1"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" /> Retake Photo
+                          </button>
                         </div>
+                      ) : (
                         <button
                           type="button"
                           onClick={() => handleCapturePhotoWithWatermark(q.id)}
-                          className="text-xs font-semibold text-gray-600 hover:text-black flex items-center gap-1"
+                          className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 hover:border-gray-400 rounded-xl text-xs font-bold text-gray-700 flex items-center justify-center gap-2 transition-colors"
                         >
-                          <RotateCcw className="w-3.5 h-3.5" /> Retake Photo
+                          <Camera className="w-4 h-4 text-[#C8202F]" />
+                          <span>Take Photo (Auto-Embed GPS Lat/Long & Timestamp)</span>
                         </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleCapturePhotoWithWatermark(q.id)}
-                        className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 hover:border-gray-400 rounded-xl text-xs font-bold text-gray-700 flex items-center justify-center gap-2 transition-colors"
-                      >
-                        <Camera className="w-4 h-4 text-[#C8202F]" />
-                        <span>Take Photo (Auto-Embed GPS Lat/Long & Timestamp)</span>
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Video Survey with 1-Min Countdown & GPS Stamp */}
-                {q.type === 'video' && (
-                  <div className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-                        <Video className="w-4 h-4 text-[#C8202F]" />
-                        <span>Video Survey of Surroundings (Up to 1 Min)</span>
-                      </span>
-                      <span className="text-[10px] font-mono bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-bold">
-                        {videoRecording ? `⏱️ ${videoSeconds}s / 60s` : 'Max 60s'}
-                      </span>
+                      )}
                     </div>
+                  </div>
+                );
+              }
 
-                    {/* Countdown bar during recording */}
-                    {videoRecording && (
-                      <div className="space-y-1.5 bg-red-50 border border-red-200 p-3 rounded-xl">
-                        <div className="flex items-center justify-between text-xs text-red-700 font-bold">
-                          <span className="flex items-center gap-1.5">
-                            <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping"></span>
-                            <span>Recording Video... ({60 - videoSeconds}s remaining)</span>
-                          </span>
-                          <span className="font-mono">00:{videoSeconds < 10 ? `0${videoSeconds}` : videoSeconds}</span>
-                        </div>
-                        <div className="w-full bg-red-200 h-2 rounded-full overflow-hidden">
-                          <div
-                            className="bg-[#C8202F] h-full transition-all duration-1000"
-                            style={{ width: `${(videoSeconds / 60) * 100}%` }}
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleStopVideoRecord(q.id)}
-                          className="w-full mt-2 py-2 bg-[#C8202F] hover:bg-red-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs"
-                        >
-                          <Square className="w-3.5 h-3.5" /> Stop &amp; Save Video Recording
-                        </button>
+              if (q.type === 'video') {
+                return (
+                  <div key={q.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-[#17243A]">
+                        Q{index + 1}. {LogicEngine.pipeText(q.label, answers)} {q.required && <span className="text-[#C8202F]">*</span>}
+                      </label>
+                      <span className="text-[10px] font-mono bg-white px-2 py-0.5 rounded border border-gray-200 text-gray-500">video</span>
+                    </div>
+                    {q.hint && <p className="text-[11px] text-gray-500">{q.hint}</p>}
+
+                    <div className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                          <Video className="w-4 h-4 text-[#C8202F]" />
+                          <span>Video Survey of Surroundings (Up to 1 Min)</span>
+                        </span>
+                        <span className="text-[10px] font-mono bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-bold">
+                          {videoRecording ? `⏱️ ${videoSeconds}s / 60s` : 'Max 60s'}
+                        </span>
                       </div>
-                    )}
 
-                    {!videoRecording && (answers[q.id]?.url || videoUrl) ? (
-                      <div className="space-y-2">
-                        <div className="p-3 bg-gray-900 text-white rounded-xl space-y-2">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-bold flex items-center gap-1.5 text-emerald-400">
-                              <Check className="w-4 h-4" /> 1-Min Video Recorded &amp; Watermarked
+                      {videoRecording && (
+                        <div className="space-y-1.5 bg-red-50 border border-red-200 p-3 rounded-xl">
+                          <div className="flex items-center justify-between text-xs text-red-700 font-bold">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping"></span>
+                              <span>Recording Video... ({60 - videoSeconds}s remaining)</span>
                             </span>
-                            <span className="text-[10px] font-mono text-gray-400">Duration: {answers[q.id]?.duration || videoSeconds || 28}s</span>
+                            <span className="font-mono">00:{videoSeconds < 10 ? `0${videoSeconds}` : videoSeconds}</span>
                           </div>
-                          <div className="text-[10px] font-mono bg-black/60 p-2 rounded border border-gray-700 text-gray-300">
-                            📍 Embedded GPS: {gpsLat.toFixed(4)}, {gpsLng.toFixed(4)} • Timestamp: {new Date().toISOString().substring(0, 19).replace('T', ' ')} UTC
+                          <div className="w-full bg-red-200 h-2 rounded-full overflow-hidden">
+                            <div
+                              className="bg-[#C8202F] h-full transition-all duration-1000"
+                              style={{ width: `${(videoSeconds / 60) * 100}%` }}
+                            />
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => handleStopVideoRecord(q.id)}
+                            className="w-full mt-2 py-2 bg-[#C8202F] hover:bg-red-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs"
+                          >
+                            <Square className="w-3.5 h-3.5" /> Stop &amp; Save Video Recording
+                          </button>
                         </div>
+                      )}
+
+                      {!videoRecording && (answers[q.id]?.url || videoUrl) ? (
+                        <div className="space-y-2">
+                          <div className="p-3 bg-gray-900 text-white rounded-xl space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-bold flex items-center gap-1.5 text-emerald-400">
+                                <Check className="w-4 h-4" /> 1-Min Video Recorded &amp; Watermarked
+                              </span>
+                              <span className="text-[10px] font-mono text-gray-400">Duration: {answers[q.id]?.duration || videoSeconds || 28}s</span>
+                            </div>
+                            <div className="text-[10px] font-mono bg-black/60 p-2 rounded border border-gray-700 text-gray-300">
+                              📍 Embedded GPS: {gpsLat.toFixed(4)}, {gpsLng.toFixed(4)} • Timestamp: {new Date().toISOString().substring(0, 19).replace('T', ' ')} UTC
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleStartVideoRecord}
+                            className="text-xs font-semibold text-gray-600 hover:text-black flex items-center gap-1"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" /> Record Again
+                          </button>
+                        </div>
+                      ) : !videoRecording && (
                         <button
                           type="button"
                           onClick={handleStartVideoRecord}
-                          className="text-xs font-semibold text-gray-600 hover:text-black flex items-center gap-1"
+                          className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 hover:border-gray-400 rounded-xl text-xs font-bold text-gray-700 flex items-center justify-center gap-2 transition-colors"
                         >
-                          <RotateCcw className="w-3.5 h-3.5" /> Record Again
+                          <Video className="w-4 h-4 text-[#C8202F]" />
+                          <span>Start Video Recording (Max 1 Min with Countdown)</span>
                         </button>
-                      </div>
-                    ) : !videoRecording && (
-                      <button
-                        type="button"
-                        onClick={handleStartVideoRecord}
-                        className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 hover:border-gray-400 rounded-xl text-xs font-bold text-gray-700 flex items-center justify-center gap-2 transition-colors"
-                      >
-                        <Video className="w-4 h-4 text-[#C8202F]" />
-                        <span>Start Video Recording (Max 1 Min with Countdown)</span>
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Audio Recording with Pause / Continue & Live Waveform */}
-                {q.type === 'audio' && (
-                  <div className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
-                        <Mic className="w-4 h-4 text-[#C8202F]" />
-                        <span>Audio Statement with Pause/Continue &amp; Live Waveform</span>
-                      </span>
-                      <span className="text-[10px] font-mono bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-bold">
-                        ⏱️ 00:{audioSeconds < 10 ? `0${audioSeconds}` : audioSeconds}
-                      </span>
+                      )}
                     </div>
+                  </div>
+                );
+              }
 
-                    {/* Live Waveform Visualizer Display */}
-                    {(audioRecording || answers[q.id]?.url || audioUrl) && (
-                      <div className="bg-[#0B0F17] rounded-xl p-3 flex flex-col items-center justify-center space-y-2">
-                        <div className="flex items-end gap-1 h-14 w-full justify-center px-4">
-                          {waveformBars.map((height, i) => (
-                            <div
-                              key={i}
-                              className={`w-2 rounded-t transition-all duration-150 ${
-                                audioRecording && !audioPaused
-                                  ? 'bg-[#E30620]'
-                                  : audioPaused
-                                  ? 'bg-amber-400'
-                                  : 'bg-emerald-400'
-                              }`}
-                              style={{ height: `${height}%` }}
-                            />
-                          ))}
-                        </div>
-                        <div className="flex items-center justify-between w-full text-[10px] font-mono px-2">
-                          <span className={audioRecording && !audioPaused ? 'text-red-400 animate-pulse font-bold' : audioPaused ? 'text-amber-400 font-bold' : 'text-emerald-400 font-bold'}>
-                            {audioRecording && !audioPaused ? '● RECORDING LIVE' : audioPaused ? '⏸ PAUSED' : '✓ AUDIO READY'}
-                          </span>
-                          <span className="text-gray-400">
-                            GPS: {gpsLat.toFixed(4)}, {gpsLng.toFixed(4)}
-                          </span>
-                        </div>
+              if (q.type === 'audio') {
+                return (
+                  <div key={q.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-[#17243A]">
+                        Q{index + 1}. {LogicEngine.pipeText(q.label, answers)} {q.required && <span className="text-[#C8202F]">*</span>}
+                      </label>
+                      <span className="text-[10px] font-mono bg-white px-2 py-0.5 rounded border border-gray-200 text-gray-500">audio</span>
+                    </div>
+                    {q.hint && <p className="text-[11px] text-gray-500">{q.hint}</p>}
+
+                    <div className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                          <Mic className="w-4 h-4 text-[#C8202F]" />
+                          <span>Audio Statement with Pause/Continue &amp; Live Waveform</span>
+                        </span>
+                        <span className="text-[10px] font-mono bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-bold">
+                          ⏱️ 00:{audioSeconds < 10 ? `0${audioSeconds}` : audioSeconds}
+                        </span>
                       </div>
-                    )}
 
-                    {/* Recorder Controls */}
-                    {audioRecording ? (
-                      <div className="flex items-center gap-2">
-                        {!audioPaused ? (
+                      {(audioRecording || answers[q.id]?.url || audioUrl) && (
+                        <div className="bg-[#0B0F17] rounded-xl p-3 flex flex-col items-center justify-center space-y-2">
+                          <div className="flex items-end gap-1 h-14 w-full justify-center px-4">
+                            {waveformBars.map((height, i) => (
+                              <div
+                                key={i}
+                                className={`w-2 rounded-t transition-all duration-150 ${
+                                  audioRecording && !audioPaused
+                                    ? 'bg-[#E30620]'
+                                    : audioPaused
+                                    ? 'bg-amber-400'
+                                    : 'bg-emerald-400'
+                                }`}
+                                style={{ height: `${height}%` }}
+                              />
+                            ))}
+                          </div>
+                          <div className="flex items-center justify-between w-full text-[10px] font-mono px-2">
+                            <span className={audioRecording && !audioPaused ? 'text-red-400 animate-pulse font-bold' : audioPaused ? 'text-amber-400 font-bold' : 'text-emerald-400 font-bold'}>
+                              {audioRecording && !audioPaused ? '● RECORDING LIVE' : audioPaused ? '⏸ PAUSED' : '✓ AUDIO READY'}
+                            </span>
+                            <span className="text-gray-400">
+                              GPS: {gpsLat.toFixed(4)}, {gpsLng.toFixed(4)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {audioRecording ? (
+                        <div className="flex items-center gap-2">
+                          {!audioPaused ? (
+                            <button
+                              type="button"
+                              onClick={handlePauseAudioRecord}
+                              className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs"
+                            >
+                              <Pause className="w-3.5 h-3.5" /> Pause Recording
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={handleResumeAudioRecord}
+                              className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs"
+                            >
+                              <Play className="w-3.5 h-3.5" /> Continue / Resume
+                            </button>
+                          )}
+
                           <button
                             type="button"
-                            onClick={handlePauseAudioRecord}
-                            className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs"
+                            onClick={() => handleStopAudioRecord(q.id)}
+                            className="flex-1 py-2.5 bg-[#C8202F] hover:bg-red-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs"
                           >
-                            <Pause className="w-3.5 h-3.5" /> Pause Recording
+                            <Square className="w-3.5 h-3.5" /> Stop &amp; Save
                           </button>
-                        ) : (
+                        </div>
+                      ) : (answers[q.id]?.url || audioUrl) ? (
+                        <div className="space-y-2">
+                          <audio controls src={answers[q.id]?.url || audioUrl} className="w-full h-8" />
                           <button
                             type="button"
-                            onClick={handleResumeAudioRecord}
-                            className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs"
+                            onClick={handleStartAudioRecord}
+                            className="text-xs font-semibold text-gray-600 hover:text-black flex items-center gap-1"
                           >
-                            <Play className="w-3.5 h-3.5" /> Continue / Resume
+                            <RotateCcw className="w-3.5 h-3.5" /> Re-record Audio
                           </button>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => handleStopAudioRecord(q.id)}
-                          className="flex-1 py-2.5 bg-[#C8202F] hover:bg-red-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs"
-                        >
-                          <Square className="w-3.5 h-3.5" /> Stop &amp; Save
-                        </button>
-                      </div>
-                    ) : (answers[q.id]?.url || audioUrl) ? (
-                      <div className="space-y-2">
-                        <audio controls src={answers[q.id]?.url || audioUrl} className="w-full h-8" />
+                        </div>
+                      ) : (
                         <button
                           type="button"
                           onClick={handleStartAudioRecord}
-                          className="text-xs font-semibold text-gray-600 hover:text-black flex items-center gap-1"
+                          className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 hover:border-gray-400 rounded-xl text-xs font-bold text-gray-700 flex items-center justify-center gap-2 transition-colors"
                         >
-                          <RotateCcw className="w-3.5 h-3.5" /> Re-record Audio
+                          <Mic className="w-4 h-4 text-[#C8202F]" />
+                          <span>Record Audio (With Waveform &amp; Pause/Continue)</span>
                         </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleStartAudioRecord}
-                        className="w-full py-3 px-4 bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 hover:border-gray-400 rounded-xl text-xs font-bold text-gray-700 flex items-center justify-center gap-2 transition-colors"
-                      >
-                        <Mic className="w-4 h-4 text-[#C8202F]" />
-                        <span>Record Audio (With Waveform &amp; Pause/Continue)</span>
-                      </button>
-                    )}
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-            ))}
+                );
+              }
+
+              // All other universal question types (single/multi-choice, text, matrix, NPS, ranking, constant sum, etc.)
+              return (
+                <QuestionRenderer
+                  key={q.id}
+                  question={q}
+                  index={index}
+                  value={answers[q.id] ?? answers[q.variableName]}
+                  allAnswers={answers}
+                  onChange={(val) => handleAnswerChange(q.id, val, q.variableName)}
+                  gpsCoords={{ lat: gpsLat, lng: gpsLng, accuracy: gpsAccuracy }}
+                />
+              );
+            })}
           </div>
 
           {/* Media Capture Section */}

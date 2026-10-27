@@ -223,6 +223,65 @@ export const INITIAL_QUESTIONNAIRES: Questionnaire[] = [
       { id: 'p3', variableName: 'satisfaction_score', label: 'Rate Overall State Infrastructure in your LGA (1-10)', type: 'integer', required: true, hint: '1 = Very Poor, 10 = Excellent' },
       { id: 'p4', variableName: 'interview_audio', label: 'Record Interview Audio Consent & Summary', type: 'audio', required: false }
     ]
+  },
+  {
+    id: 'quest-fmcg-01',
+    title: 'FMCG Brand Health & Perception Survey',
+    version: '1.0',
+    projectId: 'proj-3',
+    discipline: 'Commercial Market Research & FMCG',
+    updatedAt: '2026-10-24',
+    questions: [
+      { id: 'q_shopper_role', variableName: 'is_primary_shopper', label: 'Are you the primary or joint grocery shopper in your household?', type: 'yes_no', required: true, screenoutCondition: "is_primary_shopper == 'no'" },
+      { id: 'q_top_brand', variableName: 'top_of_mind_brand', label: 'When you think of Carbonated Soft Drinks, which brand comes to mind first?', type: 'text', required: true },
+      { id: 'q_perception', variableName: 'brand_perception', label: 'Rate your perception of {{top_of_mind_brand}} on the semantic scale:', type: 'semantic_differential', required: true, semanticPairs: [
+        { id: 'sp1', leftLabel: 'Budget / Affordable', rightLabel: 'Premium / High-End' },
+        { id: 'sp2', leftLabel: 'Traditional', rightLabel: 'Modern & Trendy' }
+      ]},
+      { id: 'q_wallet', variableName: 'wallet_share', label: 'Out of your last 10 drink purchases, how many were each brand?', type: 'constant_sum', required: true, constantSumTotal: 10, options: [
+        { id: 'w1', label: 'Coca-Cola', value: 'coke' },
+        { id: 'w2', label: 'Pepsi', value: 'pepsi' },
+        { id: 'w3', label: 'Bigi Cola', value: 'bigi' }
+      ]},
+      { id: 'q_shelf_photo', variableName: 'fridge_photo', label: 'Capture Photo of Drinks in Household Refrigerator', type: 'photo', required: true }
+    ]
+  },
+  {
+    id: 'quest-cx-01',
+    title: 'Customer Experience & NPS Relationship Study',
+    version: '1.0',
+    projectId: 'proj-1',
+    discipline: 'Customer Experience (CX) & NPS',
+    updatedAt: '2026-10-25',
+    questions: [
+      { id: 'cx_nps', variableName: 'nps_score', label: 'How likely are you to recommend our client (0-10)?', type: 'nps', required: true },
+      { id: 'cx_promoter', variableName: 'promoter_reason', label: 'What is the primary reason for giving a score of {{nps_score}}?', type: 'textarea', required: true, relevantCondition: 'nps_score >= 9' },
+      { id: 'cx_detractor', variableName: 'detractor_reason', label: 'What could be improved to earn a 10 from you?', type: 'textarea', required: true, relevantCondition: 'nps_score <= 6' },
+      { id: 'cx_matrix', variableName: 'touchpoint_satisfaction', label: 'Rate satisfaction across touchpoints:', type: 'matrix', required: true, matrixRows: [
+        { id: 'r1', label: 'App Speed & Reliability' },
+        { id: 'r2', label: 'Customer Support Response' },
+        { id: 'r3', label: 'Value for Money' }
+      ], matrixCols: [
+        { id: 'c1', label: '1 - Poor', value: '1' },
+        { id: 'c2', label: '2 - Average', value: '2' },
+        { id: 'c3', label: '3 - Excellent', value: '3' }
+      ]}
+    ]
+  },
+  {
+    id: 'quest-health-01',
+    title: 'Primary Health Clinical Screener & BMI Audit',
+    version: '1.0',
+    projectId: 'proj-4',
+    discipline: 'Public Health & Clinical Epidemiology',
+    updatedAt: '2026-10-26',
+    questions: [
+      { id: 'h_age', variableName: 'age_months', label: 'Child Age in Months', type: 'integer', required: true },
+      { id: 'h_weight', variableName: 'weight_kg', label: 'Body Weight (kg)', type: 'decimal', required: true },
+      { id: 'h_height', variableName: 'height_cm', label: 'Height / Length (cm)', type: 'decimal', required: true },
+      { id: 'h_bmi', variableName: 'bmi_score', label: 'Calculated BMI (kg/m²)', type: 'calculation', required: false, calculationFormula: 'Math.round((weight_kg / ((height_cm/100)*(height_cm/100)))*10)/10' },
+      { id: 'h_card_photo', variableName: 'vaccine_card_photo', label: 'Take Photo of Immunization Card', type: 'photo', required: true }
+    ]
   }
 ];
 

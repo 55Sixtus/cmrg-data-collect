@@ -1,21 +1,33 @@
 import React, { useState } from 'react';
-import { Questionnaire, Question, QuestionType, Enumerator, Project } from '../types';
+import { Questionnaire, Question, QuestionType, Enumerator, Project, QuestionnaireQuota } from '../types';
 import { DataService } from '../services/dataService';
+import { QuestionCard } from './builder/QuestionCard';
+import { TemplateLibraryModal } from './builder/TemplateLibraryModal';
+import { AiPromptModal } from './builder/AiPromptModal';
+import { XlsFormModal } from './builder/XlsFormModal';
+import { PreviewDeviceModal } from './builder/PreviewDeviceModal';
 import { 
-  FileCode2, 
   Plus, 
   Trash2, 
   Check, 
-  Code, 
   Layers, 
-  Settings,
-  QrCode,
-  Users,
-  Send,
-  ShieldCheck,
-  RefreshCw,
-  Copy,
-  ExternalLink
+  QrCode, 
+  Users, 
+  Send, 
+  ShieldCheck, 
+  RefreshCw, 
+  Copy, 
+  ExternalLink,
+  Sparkles,
+  FileCode2,
+  Smartphone,
+  BookOpen,
+  Filter,
+  Sliders,
+  History,
+  Target,
+  ArrowRight,
+  Download
 } from 'lucide-react';
 
 interface FormBuilderProps {
@@ -34,18 +46,24 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   onNavigateToInstall
 }) => {
   const [selectedQuestId, setSelectedQuestId] = useState<string>(questionnaires[0]?.id || '');
-  const [activeTab, setActiveTab] = useState<'questions' | 'xform' | 'publishing' | 'settings'>('questions');
+  const [activeTab, setActiveTab] = useState<'builder' | 'quotas' | 'xform' | 'publishing' | 'history'>('builder');
+
+  // Modals state
   const [showAddModal, setShowAddModal] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
-  const [selectedEnumerator, setSelectedEnumerator] = useState<Enumerator | null>(null);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [showXlsModal, setShowXlsModal] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
+  const [selectedEnumerator, setSelectedEnumerator] = useState<Enumerator | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
-  // Publish form state
-  const [publishVersion, setPublishVersion] = useState('2.5');
-  const [publishChangelog, setPublishChangelog] = useState('Updated price audit logic and added GPS constraints.');
+  // Publish versioning state
+  const [publishVersion, setPublishVersion] = useState('2.0');
+  const [publishChangelog, setPublishChangelog] = useState('Updated price audit logic, added GPS constraints, and updated quota screener.');
 
   // New question form state
   const [newLabel, setNewLabel] = useState('');
@@ -54,6 +72,12 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   const [newRequired, setNewRequired] = useState(true);
   const [newHint, setNewHint] = useState('');
   const [newOptionsText, setNewOptionsText] = useState('Option 1, Option 2, Option 3');
+
+  // Quota manager state
+  const [newQuotaName, setNewQuotaName] = useState('');
+  const [newQuotaVar, setNewQuotaVar] = useState('');
+  const [newQuotaValue, setNewQuotaValue] = useState('');
+  const [newQuotaTarget, setNewQuotaTarget] = useState(100);
 
   const currentQuestionnaire = questionnaires.find(q => q.id === selectedQuestId) || questionnaires[0];
   const associatedProject = projects.find(p => p.id === currentQuestionnaire?.projectId) || projects[0];
@@ -80,10 +104,23 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     e.preventDefault();
     setSaving(true);
     try {
+      const updatedVersionsHistory = [
+        ...(currentQuestionnaire.versionsHistory || []),
+        {
+          version: publishVersion,
+          timestamp: new Date().toISOString(),
+          author: 'CMRG Research Director',
+          changelog: publishChangelog,
+          questionsCount: currentQuestionnaire.questions.length
+        }
+      ];
+
       const updated: Questionnaire = {
         ...currentQuestionnaire,
         version: publishVersion,
-        updatedAt: new Date().toISOString().split('T')[0]
+        updatedAt: new Date().toISOString().split('T')[0],
+        status: 'published',
+        versionsHistory: updatedVersionsHistory
       };
       
       const res = await DataService.publishQuestionnaire(
@@ -113,7 +150,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     if (!newLabel || !newVarName) return;
 
     let options = undefined;
-    if (newType === 'select_one' || newType === 'select_multiple') {
+    if (['select_one', 'select_multiple', 'dropdown', 'ranking', 'constant_sum'].includes(newType)) {
       options = newOptionsText.split(',').map((opt, i) => ({
         id: `opt-${Date.now()}-${i}`,
         label: opt.trim(),
@@ -123,7 +160,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
     const newQ: Question = {
       id: `q-${Date.now()}`,
-      variableName: newVarName.trim().toLowerCase().replace(/\s+/g, '_'),
+      variableName: newVarName.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_'),
       label: newLabel,
       type: newType,
       required: newRequired,
@@ -131,7 +168,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
       options
     };
 
-    const updatedQuestions = [...currentQuestionnaire.questions, newQ];
+    const updatedQuestions = [...(currentQuestionnaire.questions || []), newQ];
     const updated: Questionnaire = {
       ...currentQuestionnaire,
       updatedAt: new Date().toISOString().split('T')[0],
@@ -145,54 +182,130 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     setNewHint('');
   };
 
-  const handleDeleteQuestion = (qId: string) => {
-    const updatedQuestions = currentQuestionnaire.questions.filter(q => q.id !== qId);
-    const updated: Questionnaire = {
+  const handleUpdateQuestion = (updatedQ: Question) => {
+    const questions = currentQuestionnaire.questions.map(q => q.id === updatedQ.id ? updatedQ : q);
+    onUpdateQuestionnaire({
       ...currentQuestionnaire,
       updatedAt: new Date().toISOString().split('T')[0],
-      questions: updatedQuestions
-    };
-    onUpdateQuestionnaire(updated);
+      questions
+    });
   };
 
-  const generateXFormXML = () => {
-    return `<?xml version="1.0" encoding="UTF-8"?>
-<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:odk="http://www.opendatakit.org/xforms">
-  <h:head>
-    <h:title>${currentQuestionnaire.title}</h:title>
-    <model>
-      <instance>
-        <data id="${currentQuestionnaire.id}" version="${currentQuestionnaire.version}">
-          ${currentQuestionnaire.questions.map(q => `<${q.variableName}/>`).join('\n          ')}
-        </data>
-      </instance>
-      ${currentQuestionnaire.questions.map(q => `<bind nodeset="/data/${q.variableName}" type="${q.type === 'integer' ? 'int' : 'string'}" required="${q.required ? 'true()' : 'false()'}"/>`).join('\n      ')}
-    </model>
-  </h:head>
-  <h:body>
-    ${currentQuestionnaire.questions.map(q => `
-    <input ref="/data/${q.variableName}">
-      <label>${q.label}</label>
-      ${q.hint ? `<hint>${q.hint}</hint>` : ''}
-    </input>`).join('')}
-  </h:body>
-</h:html>`;
+  const handleDeleteQuestion = (qId: string) => {
+    const questions = currentQuestionnaire.questions.filter(q => q.id !== qId);
+    onUpdateQuestionnaire({
+      ...currentQuestionnaire,
+      updatedAt: new Date().toISOString().split('T')[0],
+      questions
+    });
+  };
+
+  const handleDuplicateQuestion = (q: Question) => {
+    const cloned: Question = {
+      ...q,
+      id: `q-${Date.now()}`,
+      variableName: `${q.variableName}_copy`,
+      label: `${q.label} (Copy)`
+    };
+    const index = currentQuestionnaire.questions.findIndex(item => item.id === q.id);
+    const questions = [...currentQuestionnaire.questions];
+    questions.splice(index + 1, 0, cloned);
+    onUpdateQuestionnaire({
+      ...currentQuestionnaire,
+      updatedAt: new Date().toISOString().split('T')[0],
+      questions
+    });
+  };
+
+  const handleMoveUp = (index: number) => {
+    if (index === 0) return;
+    const questions = [...currentQuestionnaire.questions];
+    const temp = questions[index];
+    questions[index] = questions[index - 1];
+    questions[index - 1] = temp;
+    onUpdateQuestionnaire({
+      ...currentQuestionnaire,
+      updatedAt: new Date().toISOString().split('T')[0],
+      questions
+    });
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index === currentQuestionnaire.questions.length - 1) return;
+    const questions = [...currentQuestionnaire.questions];
+    const temp = questions[index];
+    questions[index] = questions[index + 1];
+    questions[index + 1] = temp;
+    onUpdateQuestionnaire({
+      ...currentQuestionnaire,
+      updatedAt: new Date().toISOString().split('T')[0],
+      questions
+    });
+  };
+
+  // Quotas handlers
+  const handleAddQuota = () => {
+    if (!newQuotaName || !newQuotaVar || !newQuotaValue) return;
+    const newQ: QuestionnaireQuota = {
+      id: `quota-${Date.now()}`,
+      name: newQuotaName,
+      variableName: newQuotaVar,
+      targetValue: newQuotaValue,
+      maxTarget: newQuotaTarget,
+      currentCount: 0
+    };
+    const quotas = [...(currentQuestionnaire.quotas || []), newQ];
+    onUpdateQuestionnaire({ ...currentQuestionnaire, quotas });
+    setNewQuotaName('');
+    setNewQuotaVar('');
+    setNewQuotaValue('');
+  };
+
+  const handleDeleteQuota = (quotaId: string) => {
+    const quotas = (currentQuestionnaire.quotas || []).filter(q => q.id !== quotaId);
+    onUpdateQuestionnaire({ ...currentQuestionnaire, quotas });
+  };
+
+  // Quick category addition helper
+  const handleQuickAddType = (type: QuestionType, label: string) => {
+    const varName = label.toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 20);
+    const newQ: Question = {
+      id: `q-${Date.now()}`,
+      variableName: `${varName}_${Date.now().toString().slice(-4)}`,
+      label,
+      type,
+      required: true,
+      options: ['select_one', 'select_multiple'].includes(type) ? [
+        { id: 'opt_1', label: 'Option 1', value: 'opt_1' },
+        { id: 'opt_2', label: 'Option 2', value: 'opt_2' }
+      ] : undefined
+    };
+    const questions = [...(currentQuestionnaire.questions || []), newQ];
+    onUpdateQuestionnaire({ ...currentQuestionnaire, questions });
   };
 
   return (
     <div className="p-8 space-y-6">
       {/* Top Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-[#17243A]">Questionnaire Design Studio & Publishing</h1>
-          <p className="text-xs text-gray-500">Build, version, assign, and publish ODK/SurveyCTO-compatible survey forms to PostgreSQL</p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-[#17243A]">Universal Questionnaire Design Studio</h1>
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-red-100 text-[#C8202F] px-2 py-0.5 rounded-full">
+              Enterprise
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Design, simulate, and publish universal survey instruments with full skip logic, matrices, quotas, and XLSForm compatibility
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Action Controls */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <select
             value={selectedQuestId}
             onChange={(e) => setSelectedQuestId(e.target.value)}
-            className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-[#17243A] shadow-xs"
+            className="bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-semibold text-[#17243A] shadow-xs"
           >
             {questionnaires.map(q => (
               <option key={q.id} value={q.id}>{q.title} (v{q.version})</option>
@@ -200,9 +313,44 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
           </select>
 
           <button
+            onClick={() => setShowTemplateModal(true)}
+            className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-2 rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+            title="Browse standard research templates"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+            <span>Templates</span>
+          </button>
+
+          <button
+            onClick={() => setShowAiModal(true)}
+            className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-2 rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+            title="Natural language study prompt generator"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#C8202F]" />
+            <span>AI Drafter</span>
+          </button>
+
+          <button
+            onClick={() => setShowXlsModal(true)}
+            className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-2 rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+            title="ODK / SurveyCTO XLSForm import & export"
+          >
+            <FileCode2 className="w-3.5 h-3.5 text-purple-600" />
+            <span>XLSForm</span>
+          </button>
+
+          <button
+            onClick={() => setShowPreviewModal(true)}
+            className="bg-[#17243A] hover:bg-[#1E2D4A] text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+          >
+            <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Preview & Test</span>
+          </button>
+
+          <button
             onClick={handleSaveToDatabase}
             disabled={saving}
-            className="bg-white border border-gray-300 hover:bg-gray-50 text-[#17243A] text-xs font-semibold px-4 py-2 rounded-xl shadow-xs transition-all flex items-center gap-2"
+            className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-2 rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-[#C8202F] ${saving ? 'animate-spin' : ''}`} />
             <span>{saving ? 'Saving...' : 'Save Draft'}</span>
@@ -210,7 +358,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
           <button
             onClick={() => setShowPublishModal(true)}
-            className="bg-[#C8202F] hover:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs transition-all flex items-center gap-2"
+            className="bg-[#C8202F] hover:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
           >
             <Send className="w-3.5 h-3.5" />
             <span>Publish v{currentQuestionnaire?.version}</span>
@@ -231,14 +379,25 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
       {/* Tabs Switcher */}
       <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 pb-3">
         <button
-          onClick={() => setActiveTab('questions')}
+          onClick={() => setActiveTab('builder')}
           className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-2 ${
-            activeTab === 'questions' ? 'bg-[#17243A] text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+            activeTab === 'builder' ? 'bg-[#17243A] text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
           }`}
         >
           <Layers className="w-3.5 h-3.5" />
-          <span>Form Questions ({currentQuestionnaire?.questions.length})</span>
+          <span>Visual Question Builder ({currentQuestionnaire?.questions?.length || 0})</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('quotas')}
+          className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-2 ${
+            activeTab === 'quotas' ? 'bg-[#17243A] text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+          }`}
+        >
+          <Target className="w-3.5 h-3.5" />
+          <span>Quotas & Eligibility Screening ({currentQuestionnaire?.quotas?.length || 0})</span>
+        </button>
+
         <button
           onClick={() => setActiveTab('publishing')}
           className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-2 ${
@@ -246,277 +405,544 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
           }`}
         >
           <QrCode className="w-3.5 h-3.5" />
-          <span>Enumerators, Access Codes & QR</span>
+          <span>Field Deployment & WhatsApp QR</span>
         </button>
+
         <button
-          onClick={() => setActiveTab('xform')}
+          onClick={() => setActiveTab('history')}
           className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-2 ${
-            activeTab === 'xform' ? 'bg-[#17243A] text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+            activeTab === 'history' ? 'bg-[#17243A] text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
           }`}
         >
-          <Code className="w-3.5 h-3.5" />
-          <span>ODK XForm & JSON</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('settings')}
-          className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-2 ${
-            activeTab === 'settings' ? 'bg-[#17243A] text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-          }`}
-        >
-          <Settings className="w-3.5 h-3.5" />
-          <span>Form Properties</span>
+          <History className="w-3.5 h-3.5" />
+          <span>Version History & Revisions</span>
         </button>
       </div>
 
-      {/* Tab Content: Questions */}
-      {activeTab === 'questions' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Survey Variables & Skip Logic</span>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-[#17243A] hover:bg-black text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Question</span>
-            </button>
+      {/* TAB 1: VISUAL QUESTION BUILDER */}
+      {activeTab === 'builder' && (
+        <div className="space-y-6">
+          {/* Quick Palette for 20+ Question Types */}
+          <div className="p-4 bg-white border border-gray-200 rounded-2xl shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Plus className="w-4 h-4 text-[#C8202F]" />
+                <span>Quick-Insert Question Type</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(true)}
+                className="text-xs font-bold text-[#C8202F] hover:text-red-700 flex items-center gap-1"
+              >
+                Custom Question Form
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => handleQuickAddType('select_one', 'Single Choice Question')}
+                className="p-2 rounded-xl border border-gray-200 hover:border-purple-300 hover:bg-purple-50 text-left font-semibold text-gray-700 transition-colors"
+              >
+                🔘 Single Choice
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAddType('select_multiple', 'Multiple Choice Question')}
+                className="p-2 rounded-xl border border-gray-200 hover:border-purple-300 hover:bg-purple-50 text-left font-semibold text-gray-700 transition-colors"
+              >
+                ☑️ Multiple Choice
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAddType('nps', 'How likely are you to recommend? (0-10)')}
+                className="p-2 rounded-xl border border-gray-200 hover:border-rose-300 hover:bg-rose-50 text-left font-semibold text-gray-700 transition-colors"
+              >
+                🎯 NPS (0-10)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAddType('matrix', 'Rate the following attributes:')}
+                className="p-2 rounded-xl border border-gray-200 hover:border-cyan-300 hover:bg-cyan-50 text-left font-semibold text-gray-700 transition-colors"
+              >
+                📊 Matrix / Grid
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAddType('ranking', 'Rank in order of priority:')}
+                className="p-2 rounded-xl border border-gray-200 hover:border-teal-300 hover:bg-teal-50 text-left font-semibold text-gray-700 transition-colors"
+              >
+                🔢 Ranking Order
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAddType('constant_sum', 'Allocate 100 points across items:')}
+                className="p-2 rounded-xl border border-gray-200 hover:border-orange-300 hover:bg-orange-50 text-left font-semibold text-gray-700 transition-colors"
+              >
+                ⚖️ Constant Sum
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAddType('photo', 'Capture GPS Watermarked Photo')}
+                className="p-2 rounded-xl border border-gray-200 hover:border-red-300 hover:bg-red-50 text-left font-semibold text-gray-700 transition-colors"
+              >
+                📷 Watermarked Photo
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAddType('video', 'Record Video of Site (Max 1 min)')}
+                className="p-2 rounded-xl border border-gray-200 hover:border-red-300 hover:bg-red-50 text-left font-semibold text-gray-700 transition-colors"
+              >
+                🎥 1-Min Video
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAddType('audio', 'Record Audio Consent Statement')}
+                className="p-2 rounded-xl border border-gray-200 hover:border-red-300 hover:bg-red-50 text-left font-semibold text-gray-700 transition-colors"
+              >
+                🎙️ Audio Waveform
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAddType('signature', 'Informed Consent Signature')}
+                className="p-2 rounded-xl border border-gray-200 hover:border-gray-400 hover:bg-gray-100 text-left font-semibold text-gray-700 transition-colors"
+              >
+                ✍️ Signature Pad
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAddType('gps', 'Capture High-Accuracy GPS Fix')}
+                className="p-2 rounded-xl border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 text-left font-semibold text-gray-700 transition-colors"
+              >
+                📍 Satellite GPS
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickAddType('repeat_group', 'Household Member Roster')}
+                className="p-2 rounded-xl border border-gray-200 hover:border-violet-300 hover:bg-violet-50 text-left font-semibold text-gray-700 transition-colors"
+              >
+                🔁 Repeating Loop
+              </button>
+            </div>
           </div>
 
-          {currentQuestionnaire?.questions.map((q, index) => (
-            <div key={q.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-xs flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full bg-gray-100 text-[#17243A] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                  {index + 1}
-                </span>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-xs font-bold text-[#17243A]">{q.label}</h3>
-                    <span className="text-[10px] font-mono bg-red-50 text-[#C8202F] px-2 py-0.5 rounded font-semibold">{q.variableName}</span>
-                    <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded uppercase font-semibold">{q.type}</span>
-                    {q.required && <span className="text-[10px] text-red-600 font-bold">*Required</span>}
-                  </div>
-                  {q.hint && <p className="text-[11px] text-gray-500 italic">Hint: {q.hint}</p>}
-                  
-                  {q.options && q.options.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-2">
-                      {q.options.map((opt, i) => (
-                        <span key={i} className="bg-gray-50 border border-gray-200 text-gray-700 text-[10px] px-2.5 py-1 rounded-md font-medium">
-                          {opt.label}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+          {/* List of Questions */}
+          <div className="space-y-3">
+            {(!currentQuestionnaire?.questions || currentQuestionnaire.questions.length === 0) ? (
+              <div className="p-12 text-center bg-white border border-dashed border-gray-300 rounded-2xl space-y-3">
+                <Layers className="w-10 h-10 text-gray-400 mx-auto" />
+                <h3 className="text-sm font-bold text-gray-700">No Questions Yet</h3>
+                <p className="text-xs text-gray-500 max-w-md mx-auto">
+                  Click a question type above, or generate from a research template or natural language prompt.
+                </p>
+                <div className="flex justify-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowTemplateModal(true)}
+                    className="px-4 py-2 bg-[#17243A] text-white text-xs font-semibold rounded-xl"
+                  >
+                    Load Standard Template
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAiModal(true)}
+                    className="px-4 py-2 bg-[#C8202F] text-white text-xs font-semibold rounded-xl"
+                  >
+                    AI Prompt Drafter
+                  </button>
                 </div>
               </div>
-
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => handleDeleteQuestion(q.id)}
-                  className="p-2 text-gray-400 hover:text-[#C8202F] hover:bg-red-50 rounded-lg transition-colors"
-                  title="Delete Question"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
+            ) : (
+              currentQuestionnaire.questions.map((q, idx) => (
+                <QuestionCard
+                  key={q.id}
+                  question={q}
+                  index={idx}
+                  totalQuestions={currentQuestionnaire.questions.length}
+                  allQuestions={currentQuestionnaire.questions}
+                  onUpdate={handleUpdateQuestion}
+                  onDelete={handleDeleteQuestion}
+                  onDuplicate={handleDuplicateQuestion}
+                  onMoveUp={handleMoveUp}
+                  onMoveDown={handleMoveDown}
+                />
+              ))
+            )}
+          </div>
         </div>
       )}
 
-      {/* Tab Content: Publishing, Access Codes & QR */}
-      {activeTab === 'publishing' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-7 bg-white rounded-2xl border border-gray-200 p-6 space-y-6">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+      {/* TAB 2: QUOTAS & ELIGIBILITY SCREENING */}
+      {activeTab === 'quotas' && (
+        <div className="space-y-6">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-bold text-[#17243A]">Field Enumerator Assignment & QR Access</h2>
-                <p className="text-xs text-gray-500">Assign questionnaire v{currentQuestionnaire.version} to field staff & generate secure QR codes</p>
+                <h3 className="text-sm font-bold text-[#17243A]">Demographic Quotas & Sample Balance</h3>
+                <p className="text-xs text-gray-500">
+                  Enforce fieldwork targets across age brackets, gender, states, or customer segments. Once reached, field devices screen out additional responses.
+                </p>
               </div>
-              <span className="bg-emerald-50 text-emerald-700 font-bold text-xs px-2.5 py-1 rounded-lg border border-emerald-200">
-                Published & Active
-              </span>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Assigned Field Enumerators ({enumerators.length})</h3>
-              
-              <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
-                {enumerators.map(enu => (
-                  <div key={enu.id} className="bg-gray-50 hover:bg-gray-100/80 transition-colors border border-gray-200 rounded-xl p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#17243A] text-white flex items-center justify-center font-bold text-xs">
-                        {enu.name.split(' ').map(n => n[0]).join('')}
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-[#17243A]">{enu.name} ({enu.id})</p>
-                        <p className="text-[10px] text-gray-500">{enu.state} State • Code: <strong className="text-gray-800 font-mono">CMRG-ACC-{enu.id.replace('ENU-', '')}89</strong></p>
-                      </div>
-                    </div>
+            {/* Add new quota row */}
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+              <div className="sm:col-span-2">
+                <label className="block text-[10px] font-bold text-gray-600 mb-1">Quota Description</label>
+                <input
+                  type="text"
+                  value={newQuotaName}
+                  onChange={(e) => setNewQuotaName(e.target.value)}
+                  placeholder="e.g. Lagos Island Male 25-35"
+                  className="w-full text-xs p-2 border border-gray-300 rounded-lg bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-gray-600 mb-1">Target Variable</label>
+                <input
+                  type="text"
+                  value={newQuotaVar}
+                  onChange={(e) => setNewQuotaVar(e.target.value)}
+                  placeholder="e.g. respondent_gender"
+                  className="w-full text-xs p-2 border border-gray-300 rounded-lg font-mono bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-gray-600 mb-1">Target Value</label>
+                <input
+                  type="text"
+                  value={newQuotaValue}
+                  onChange={(e) => setNewQuotaValue(e.target.value)}
+                  placeholder="e.g. male"
+                  className="w-full text-xs p-2 border border-gray-300 rounded-lg bg-white"
+                />
+              </div>
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <label className="block text-[10px] font-bold text-gray-600 mb-1">Max Quota</label>
+                  <input
+                    type="number"
+                    value={newQuotaTarget}
+                    onChange={(e) => setNewQuotaTarget(Number(e.target.value))}
+                    className="w-full text-xs p-2 border border-gray-300 rounded-lg bg-white"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddQuota}
+                  className="p-2 bg-[#C8202F] text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
 
-                    <button
-                      onClick={() => {
-                        setSelectedEnumerator(enu);
-                        setShowQRModal(true);
-                      }}
-                      className="bg-[#C8202F] hover:bg-red-700 text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg shadow-xs flex items-center gap-1.5 transition-all"
-                    >
-                      <QrCode className="w-3.5 h-3.5" />
-                      <span>QR Access Code</span>
-                    </button>
+            {/* Quota cards */}
+            <div className="space-y-2">
+              {(!currentQuestionnaire?.quotas || currentQuestionnaire.quotas.length === 0) ? (
+                <p className="text-xs text-gray-400 italic py-4 text-center">No quotas configured. Study will accept all verified submissions.</p>
+              ) : (
+                currentQuestionnaire.quotas.map(quota => (
+                  <div key={quota.id} className="p-3.5 rounded-xl border border-gray-200 bg-white flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-[#17243A]">{quota.name}</h4>
+                      <p className="text-[10px] font-mono text-gray-500">
+                        When <span className="font-bold text-gray-700">${'{' + quota.variableName + '}'} == '{quota.targetValue}'</span>
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <span className="text-xs font-bold font-mono text-[#C8202F]">
+                          {quota.currentCount} / {quota.maxTarget}
+                        </span>
+                        <div className="w-24 bg-gray-200 h-1.5 rounded-full mt-1 overflow-hidden">
+                          <div
+                            className="bg-[#C8202F] h-full"
+                            style={{ width: `${Math.min(100, (quota.currentCount / quota.maxTarget) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteQuota(quota.id)}
+                        className="text-gray-400 hover:text-red-600 p-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: PUBLISHING, ACCESS CODES & WHATSAPP QR */}
+      {activeTab === 'publishing' && (
+        <div className="space-y-6">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4">
+            <div>
+              <h3 className="text-sm font-bold text-[#17243A]">Field Deployment Access & PWA WhatsApp QR</h3>
+              <p className="text-xs text-gray-500">
+                Generate project access codes and QR links to send to field enumerators via WhatsApp. Enumerators scan with phone camera to auto-pair and install the offline PWA.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+              <div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase">Assigned Project</span>
+                <p className="text-xs font-bold text-[#17243A] mt-0.5">{associatedProject?.title || 'CMRG Project'}</p>
+                <p className="text-[11px] font-mono text-gray-500">Code: {associatedProject?.code || 'CMRG-739'}</p>
+              </div>
+
+              <div>
+                <span className="text-[10px] font-bold text-gray-500 uppercase">Universal Access Code</span>
+                <p className="text-sm font-mono font-bold text-[#C8202F] mt-0.5">{associatedProject?.code || 'CMRG-739'}</p>
+                <p className="text-[10px] text-gray-500">Auto-authenticates field enumerator devices</p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onNavigateToInstall) {
+                      onNavigateToInstall(associatedProject?.code || 'CMRG-739');
+                    }
+                  }}
+                  className="w-full py-2.5 px-3 bg-[#17243A] hover:bg-[#1E2D4A] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-xs transition-colors"
+                >
+                  <QrCode className="w-4 h-4 text-emerald-400" />
+                  <span>Launch WhatsApp QR Modal</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Assigned Enumerator Roster */}
+            <div>
+              <h4 className="text-xs font-bold text-gray-800 mb-2">Assigned Field Enumerators ({enumerators.length})</h4>
+              <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
+                {enumerators.slice(0, 6).map(e => (
+                  <div key={e.id} className="p-3 flex items-center justify-between text-xs hover:bg-gray-50">
+                    <div>
+                      <span className="font-bold text-[#17243A]">{e.name}</span>
+                      <span className="text-[11px] font-mono text-gray-500 ml-2">({e.id})</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">
+                        {e.status}
+                      </span>
+                      <span className="text-gray-500 text-[11px]">{e.phone}</span>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
+        </div>
+      )}
 
-          <div className="lg:col-span-5 bg-[#17243A] text-white rounded-2xl p-6 shadow-xl space-y-6 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-gray-300">Questionnaire Publication Summary</span>
-                <span className="text-xs font-mono bg-[#C8202F] text-white px-2 py-0.5 rounded font-bold">v{currentQuestionnaire.version}</span>
-              </div>
-              
-              <div className="space-y-3 text-xs">
-                <div>
-                  <span className="text-gray-400 block text-[10px] uppercase">Associated Project</span>
-                  <p className="font-bold text-white mt-0.5">{associatedProject?.title || 'Research Project'}</p>
-                </div>
-                <div>
-                  <span className="text-gray-400 block text-[10px] uppercase">Total Variables</span>
-                  <p className="font-bold text-emerald-400 mt-0.5">{currentQuestionnaire.questions.length} Questions (ODK XForm Ready)</p>
-                </div>
-                <div>
-                  <span className="text-gray-400 block text-[10px] uppercase">Last Version Update</span>
-                  <p className="font-bold text-white mt-0.5">{currentQuestionnaire.updatedAt}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-black/40 rounded-xl p-4 border border-white/10 space-y-3">
-              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
-                <ShieldCheck className="w-4 h-4" />
-                <span>PostgreSQL Immutable Versioning</span>
-              </div>
-              <p className="text-[11px] text-gray-300 leading-relaxed">
-                Published questionnaire versions are locked in Supabase to ensure historical data integrity across all completed field interviews.
+      {/* TAB 4: VERSION HISTORY */}
+      {activeTab === 'history' && (
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-[#17243A]">Questionnaire Revision & Publishing History</h3>
+              <p className="text-xs text-gray-500">
+                Audited snapshots of previous versions. Submissions preserve the exact version schema they were collected under.
               </p>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Tab Content: XForm Export */}
-      {activeTab === 'xform' && (
-        <div className="bg-[#17243A] rounded-2xl p-6 text-white shadow-lg space-y-4">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3">
-            <div>
-              <h2 className="text-sm font-bold">ODK / SurveyCTO XForm XML Definition</h2>
-              <p className="text-xs text-gray-400">Ready for direct deployment to ODK Aggregate or SurveyCTO server</p>
-            </div>
-            <button
-              onClick={() => navigator.clipboard.writeText(generateXFormXML())}
-              className="bg-[#C8202F] hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition-all flex items-center gap-1.5"
-            >
-              <Copy className="w-3.5 h-3.5" />
-              <span>Copy XML</span>
-            </button>
-          </div>
-          <pre className="text-xs font-mono bg-[#0D1522] p-4 rounded-xl overflow-x-auto text-emerald-400 leading-relaxed max-h-96">
-            {generateXFormXML()}
-          </pre>
-        </div>
-      )}
-
-      {/* Tab Content: Settings */}
-      {activeTab === 'settings' && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4 max-w-xl">
-          <h2 className="text-sm font-bold text-[#17243A]">Questionnaire Metadata</h2>
-          <div className="space-y-3 text-xs">
-            <div>
-              <label className="block font-semibold text-gray-700 mb-1">Form Title</label>
-              <input
-                type="text"
-                value={currentQuestionnaire.title}
-                onChange={(e) => {
-                  const updated = { ...currentQuestionnaire, title: e.target.value };
-                  onUpdateQuestionnaire(updated);
-                }}
-                className="w-full bg-[#F6F7F9] border border-gray-200 rounded-lg p-2.5 text-[#1B2430]"
-              />
-            </div>
-            <div>
-              <label className="block font-semibold text-gray-700 mb-1">Form Version</label>
-              <input
-                type="text"
-                value={currentQuestionnaire.version}
-                onChange={(e) => {
-                  const updated = { ...currentQuestionnaire, version: e.target.value };
-                  onUpdateQuestionnaire(updated);
-                }}
-                className="w-full bg-[#F6F7F9] border border-gray-200 rounded-lg p-2.5 text-[#1B2430]"
-              />
-            </div>
-            <div>
-              <label className="block font-semibold text-gray-700 mb-1">Last Updated</label>
-              <input
-                type="text"
-                disabled
-                value={currentQuestionnaire.updatedAt}
-                className="w-full bg-gray-100 border border-gray-200 rounded-lg p-2.5 text-gray-500 cursor-not-allowed"
-              />
-            </div>
+          <div className="space-y-3">
+            {(!currentQuestionnaire.versionsHistory || currentQuestionnaire.versionsHistory.length === 0) ? (
+              <div className="p-4 bg-gray-50 rounded-xl text-xs text-gray-500">
+                Current active version is <strong>v{currentQuestionnaire.version}</strong>. When you publish a release, an immutable snapshot will be logged here.
+              </div>
+            ) : (
+              currentQuestionnaire.versionsHistory.map((v, i) => (
+                <div key={i} className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-[#17243A]">Version v{v.version}</span>
+                      <span className="text-[10px] text-gray-400 font-mono">
+                        {new Date(v.timestamp).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1">{v.changelog}</p>
+                    <span className="text-[10px] font-mono text-gray-500 mt-1 block">
+                      Published by {v.author} • {v.questionsCount} questions
+                    </span>
+                  </div>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">
+                    Snapshot Saved
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
 
-      {/* Publish Modal */}
-      {showPublishModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
-              <h2 className="text-base font-bold text-[#17243A]">Publish Questionnaire Version</h2>
-              <button onClick={() => setShowPublishModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
-            </div>
-
-            <form onSubmit={handlePublish} className="space-y-4 text-xs">
+      {/* MODAL 1: ADD QUESTION MODAL */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-200 space-y-4">
+            <h3 className="text-base font-bold text-[#17243A]">Add Custom Question</h3>
+            <form onSubmit={handleAddQuestion} className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-gray-700 mb-1">New Version Number</label>
+                <label className="block font-bold text-gray-700 mb-1">Question Label</label>
+                <input
+                  type="text"
+                  required
+                  value={newLabel}
+                  onChange={(e) => setNewLabel(e.target.value)}
+                  placeholder="e.g. Rate your satisfaction with public transport"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg focus:outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Variable Name</label>
+                <input
+                  type="text"
+                  required
+                  value={newVarName}
+                  onChange={(e) => setNewVarName(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))}
+                  placeholder="e.g. transport_satisfaction"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg font-mono focus:outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Question Type</label>
+                <select
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value as QuestionType)}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg bg-white"
+                >
+                  <option value="text">Single-line Text</option>
+                  <option value="textarea">Long Answer Textarea</option>
+                  <option value="integer">Integer (Number)</option>
+                  <option value="decimal">Decimal (Float)</option>
+                  <option value="yes_no">Yes / No Binary</option>
+                  <option value="select_one">Single Choice (Radio)</option>
+                  <option value="select_multiple">Multiple Choice (Checkboxes)</option>
+                  <option value="dropdown">Dropdown Selection</option>
+                  <option value="rating">Rating Scale (1-5)</option>
+                  <option value="nps">NPS Score (0-10)</option>
+                  <option value="matrix">Matrix / Grid</option>
+                  <option value="ranking">Ranking Order</option>
+                  <option value="constant_sum">Constant Sum Allocation</option>
+                  <option value="photo">Camera Photo (Watermarked)</option>
+                  <option value="video">Video Survey (1 Min)</option>
+                  <option value="audio">Audio Recorder</option>
+                  <option value="signature">Signature Canvas</option>
+                  <option value="gps">GPS Satellite Fix</option>
+                  <option value="repeat_group">Repeating Loop / Roster</option>
+                </select>
+              </div>
+
+              {['select_one', 'select_multiple', 'dropdown', 'ranking', 'constant_sum'].includes(newType) && (
+                <div>
+                  <label className="block font-bold text-gray-700 mb-1">Options (Comma separated)</label>
+                  <input
+                    type="text"
+                    value={newOptionsText}
+                    onChange={(e) => setNewOptionsText(e.target.value)}
+                    className="w-full p-2.5 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Hint (Optional)</label>
+                <input
+                  type="text"
+                  value={newHint}
+                  onChange={(e) => setNewHint(e.target.value)}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="req_box"
+                  checked={newRequired}
+                  onChange={(e) => setNewRequired(e.target.checked)}
+                  className="rounded text-[#C8202F]"
+                />
+                <label htmlFor="req_box" className="font-bold text-gray-700">Mandatory response</label>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-xl font-semibold text-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#C8202F] text-white rounded-xl font-semibold hover:bg-red-700"
+                >
+                  Add Question
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: PUBLISH RELEASE MODAL */}
+      {showPublishModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200 space-y-4">
+            <h3 className="text-base font-bold text-[#17243A]">Publish Questionnaire Release</h3>
+            <p className="text-xs text-gray-500">
+              Publishing tags a new production release and makes it available immediately to field devices.
+            </p>
+
+            <form onSubmit={handlePublish} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-gray-700 mb-1">Release Version Tag</label>
                 <input
                   type="text"
                   required
                   value={publishVersion}
                   onChange={(e) => setPublishVersion(e.target.value)}
-                  className="w-full bg-[#F6F7F9] border border-gray-200 rounded-lg p-2.5 font-mono font-bold text-[#17243A]"
-                  placeholder="e.g. 2.6"
+                  className="w-full p-2.5 border border-gray-300 rounded-lg font-mono"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-1">Changelog & Release Notes</label>
+                <label className="block font-bold text-gray-700 mb-1">Audit Changelog / Release Notes</label>
                 <textarea
                   rows={3}
                   required
                   value={publishChangelog}
                   onChange={(e) => setPublishChangelog(e.target.value)}
-                  className="w-full bg-[#F6F7F9] border border-gray-200 rounded-lg p-2.5 text-[#17243A]"
-                  placeholder="Describe changes made to questions or skip logic..."
+                  className="w-full p-2.5 border border-gray-300 rounded-lg"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-200">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setShowPublishModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 font-semibold hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-xl font-semibold text-gray-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-4 py-2 bg-[#C8202F] hover:bg-red-700 text-white font-semibold rounded-xl shadow-xs"
+                  className="px-5 py-2 bg-[#C8202F] hover:bg-red-700 text-white rounded-xl font-semibold flex items-center gap-1.5"
                 >
-                  {saving ? 'Publishing...' : 'Publish to PostgreSQL'}
+                  {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                  <span>{saving ? 'Publishing...' : 'Deploy to Production'}</span>
                 </button>
               </div>
             </form>
@@ -524,197 +950,46 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
         </div>
       )}
 
-      {/* QR Access Code Modal */}
-      {showQRModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4 relative border border-gray-100">
-            <button onClick={() => setShowQRModal(false)} className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-black rounded-full bg-gray-100">×</button>
-            
-            <div className="w-12 h-12 bg-red-50 text-[#C8202F] rounded-2xl mx-auto flex items-center justify-center shadow-inner">
-              <QrCode className="w-6 h-6" />
-            </div>
+      {/* SUPPORTING TOOL MODALS */}
+      <TemplateLibraryModal
+        isOpen={showTemplateModal}
+        onClose={() => setShowTemplateModal(false)}
+        onSelectTemplate={(template) => {
+          onUpdateQuestionnaire(template);
+          setSelectedQuestId(template.id);
+          setSaveSuccessMsg(`Loaded universal template: ${template.title}`);
+          setTimeout(() => setSaveSuccessMsg(null), 4000);
+        }}
+      />
 
-            <div>
-              <h3 className="text-base font-bold text-[#17243A]">Enumerator Field Access & Install QR</h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {selectedEnumerator ? `${selectedEnumerator.name} (${selectedEnumerator.id})` : 'All Field Enumerators'}
-              </p>
-            </div>
+      <AiPromptModal
+        isOpen={showAiModal}
+        onClose={() => setShowAiModal(false)}
+        onGenerated={(generated) => {
+          onUpdateQuestionnaire(generated);
+          setSelectedQuestId(generated.id);
+          setSaveSuccessMsg(`Generated questionnaire from AI brief: ${generated.title}`);
+          setTimeout(() => setSaveSuccessMsg(null), 4000);
+        }}
+      />
 
-            {/* QR Code Container with High-Contrast QR Pattern */}
-            <div className="w-52 h-52 bg-gradient-to-br from-[#0B0F17] to-[#17243A] border-2 border-[#E30620] rounded-2xl p-4 mx-auto flex flex-col items-center justify-center relative shadow-lg">
-              <div className="bg-white p-2.5 rounded-xl flex flex-col items-center justify-center shadow-md">
-                <QrCode className="w-28 h-28 text-[#0B0F17]" />
-                <span className="text-[9px] font-mono font-bold text-[#E30620] mt-1 tracking-wider">SCAN TO INSTALL</span>
-              </div>
-              <span className="text-[10px] font-mono text-gray-300 mt-2">
-                app.ourfield.com/install/{currentQuestionnaire?.id ? currentQuestionnaire.id.replace('quest-', 'CMRG-') : 'CMRG-123'}
-              </span>
-            </div>
+      <XlsFormModal
+        isOpen={showXlsModal}
+        onClose={() => setShowXlsModal(false)}
+        currentQuestionnaire={currentQuestionnaire}
+        onImport={(imported) => {
+          onUpdateQuestionnaire(imported);
+          setSelectedQuestId(imported.id);
+          setSaveSuccessMsg(`Successfully imported XLSForm survey (${imported.questions.length} questions)`);
+          setTimeout(() => setSaveSuccessMsg(null), 4000);
+        }}
+      />
 
-            {/* Direct Link Box */}
-            <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-xs font-mono font-bold text-gray-800 flex items-center justify-between gap-2">
-              <span className="truncate text-[11px] text-[#17243A]">
-                app.ourfield.com/install/{currentQuestionnaire?.id ? currentQuestionnaire.id.replace('quest-', 'CMRG-') : 'CMRG-123'}
-              </span>
-              <button
-                onClick={() => {
-                  const url = `${window.location.origin}?install=${currentQuestionnaire?.id ? currentQuestionnaire.id.replace('quest-', 'CMRG-') : 'CMRG-123'}`;
-                  navigator.clipboard?.writeText(url);
-                  alert('Install link copied to clipboard!');
-                }}
-                className="p-1 text-gray-500 hover:text-[#C8202F] shrink-0"
-                title="Copy link"
-              >
-                <Copy className="w-4 h-4" />
-              </button>
-            </div>
-
-            <p className="text-[11px] text-gray-500 leading-snug">
-              Enumerator scans with phone camera → opens browser page with <b>"INSTALL APP"</b> button → PWA installs to phone home screen.
-            </p>
-
-            <div className="flex flex-col gap-2 pt-1">
-              {onNavigateToInstall && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const code = currentQuestionnaire?.id ? currentQuestionnaire.id.replace('quest-', 'CMRG-') : 'CMRG-123';
-                    setShowQRModal(false);
-                    onNavigateToInstall(code);
-                  }}
-                  className="w-full py-2.5 bg-[#17243A] hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md"
-                >
-                  <span>Test Mobile Install Page</span>
-                  <ExternalLink className="w-3.5 h-3.5 text-[#E30620]" />
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setShowQRModal(false)}
-                className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition-all"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Question Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
-              <h2 className="text-base font-bold text-[#17243A]">Add Questionnaire Question</h2>
-              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
-            </div>
-
-            <form onSubmit={handleAddQuestion} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Question Label / Prompt</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g., What is the retail selling price of this item?"
-                  value={newLabel}
-                  onChange={(e) => {
-                    setNewLabel(e.target.value);
-                    if (!newVarName) {
-                      setNewVarName(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '_').slice(0, 20));
-                    }
-                  }}
-                  className="w-full bg-[#F6F7F9] border border-gray-200 rounded-lg p-2.5 text-[#1B2430]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Variable Name (XML Tag)</label>
-                  <input
-                    type="text"
-                    required
-                    value={newVarName}
-                    onChange={(e) => setNewVarName(e.target.value)}
-                    className="w-full bg-[#F6F7F9] border border-gray-200 rounded-lg p-2.5 text-[#1B2430] font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Question Type</label>
-                  <select
-                    value={newType}
-                    onChange={(e: any) => setNewType(e.target.value)}
-                    className="w-full bg-[#F6F7F9] border border-gray-200 rounded-lg p-2.5 text-[#1B2430]"
-                  >
-                    <option value="text">Text (Single Line)</option>
-                    <option value="integer">Integer (Number)</option>
-                    <option value="decimal">Decimal Number</option>
-                    <option value="select_one">Select One (Radio)</option>
-                    <option value="select_multiple">Select Multiple (Checkbox)</option>
-                    <option value="gps">GPS Location Capture</option>
-                    <option value="photo">Photo Capture (GPS Watermarked)</option>
-                    <option value="video">Video Recording (Up to 1 min)</option>
-                    <option value="audio">Audio Recording (Waveform + Pause/Resume)</option>
-                    <option value="date">Date / Time</option>
-                  </select>
-                </div>
-              </div>
-
-              {(newType === 'select_one' || newType === 'select_multiple') && (
-                <div>
-                  <label className="block font-semibold text-gray-700 mb-1">Options (Comma separated)</label>
-                  <input
-                    type="text"
-                    value={newOptionsText}
-                    onChange={(e) => setNewOptionsText(e.target.value)}
-                    className="w-full bg-[#F6F7F9] border border-gray-200 rounded-lg p-2.5 text-[#1B2430]"
-                    placeholder="Option 1, Option 2, Option 3"
-                  />
-                </div>
-              )}
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Enumerator Hint (Optional)</label>
-                <input
-                  type="text"
-                  placeholder="e.g., Verify price tag directly from merchant ledger"
-                  value={newHint}
-                  onChange={(e) => setNewHint(e.target.value)}
-                  className="w-full bg-[#F6F7F9] border border-gray-200 rounded-lg p-2.5 text-[#1B2430]"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="req"
-                  checked={newRequired}
-                  onChange={(e) => setNewRequired(e.target.checked)}
-                  className="rounded border-gray-300 text-[#C8202F] focus:ring-[#C8202F]"
-                />
-                <label htmlFor="req" className="font-semibold text-gray-700">Mandatory question (Required for completion)</label>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 font-semibold hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#C8202F] hover:bg-red-700 text-white font-semibold rounded-xl shadow-xs"
-                >
-                  Save Question
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <PreviewDeviceModal
+        isOpen={showPreviewModal}
+        onClose={() => setShowPreviewModal(false)}
+        questionnaire={currentQuestionnaire}
+      />
     </div>
   );
 };

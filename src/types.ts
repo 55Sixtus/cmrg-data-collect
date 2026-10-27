@@ -80,22 +80,64 @@ export interface Project {
 
 export type QuestionType = 
   | 'text'
+  | 'textarea'
   | 'integer'
   | 'decimal'
+  | 'yes_no'
   | 'select_one'
   | 'select_multiple'
-  | 'gps'
+  | 'dropdown'
+  | 'rating'
+  | 'nps'
+  | 'matrix'
+  | 'ranking'
+  | 'semantic_differential'
+  | 'constant_sum'
+  | 'date'
+  | 'time'
+  | 'duration'
+  | 'calculation'
+  | 'image_select'
   | 'photo'
   | 'video'
   | 'audio'
+  | 'signature'
+  | 'gps'
   | 'barcode'
-  | 'date'
-  | 'matrix';
+  | 'repeat_group'
+  | 'instruction';
 
 export interface QuestionOption {
   id: string;
   label: string;
   value: string;
+  imageUrl?: string;
+}
+
+export interface MatrixRow {
+  id: string;
+  label: string;
+}
+
+export interface MatrixCol {
+  id: string;
+  label: string;
+  value: string;
+}
+
+export interface SemanticPair {
+  id: string;
+  leftLabel: string;
+  rightLabel: string;
+}
+
+export interface QuestionValidation {
+  minValue?: number;
+  maxValue?: number;
+  minLength?: number;
+  maxLength?: number;
+  regexPattern?: string;
+  customErrorMessage?: string;
 }
 
 export interface Question {
@@ -105,8 +147,44 @@ export interface Question {
   type: QuestionType;
   required: boolean;
   hint?: string;
+  section?: string;
   options?: QuestionOption[];
-  relevantCondition?: string; // e.g. "q3 == '1'"
+  allowOther?: boolean;
+  otherLabel?: string;
+  randomizeOptions?: boolean;
+  matrixRows?: MatrixRow[];
+  matrixCols?: MatrixCol[];
+  semanticPairs?: SemanticPair[];
+  maxRating?: number;
+  ratingLabels?: { min: string; max: string };
+  constantSumTotal?: number;
+  calculationFormula?: string;
+  repeatQuestions?: Question[];
+  repeatCountVar?: string;
+  repeatMax?: number;
+  pipeSourceVar?: string;
+  relevantCondition?: string; // e.g. "q3 == '1'" or "age >= 18"
+  skipToQuestionId?: string;
+  validation?: QuestionValidation;
+  screenoutCondition?: string;
+  screenoutMessage?: string;
+}
+
+export interface QuestionnaireQuota {
+  id: string;
+  name: string;
+  variableName: string;
+  targetValue: string;
+  maxTarget: number;
+  currentCount: number;
+}
+
+export interface QuestionnaireVersionRecord {
+  version: string;
+  timestamp: string;
+  author: string;
+  changelog: string;
+  questionsCount: number;
 }
 
 export interface Questionnaire {
@@ -115,7 +193,13 @@ export interface Questionnaire {
   version: string;
   projectId: string;
   updatedAt: string;
+  discipline?: string;
+  description?: string;
   questions: Question[];
+  quotas?: QuestionnaireQuota[];
+  randomizeQuestions?: boolean;
+  status?: 'draft' | 'published' | 'archived';
+  versionsHistory?: QuestionnaireVersionRecord[];
 }
 
 export interface Submission {

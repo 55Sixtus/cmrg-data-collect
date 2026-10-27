@@ -196,7 +196,13 @@ export default function App() {
   };
 
   const handleUpdateQuestionnaire = (updated: Questionnaire) => {
-    setQuestionnaires(prev => prev.map(q => q.id === updated.id ? updated : q));
+    setQuestionnaires(prev => {
+      const exists = prev.some(q => q.id === updated.id);
+      if (exists) {
+        return prev.map(q => q.id === updated.id ? updated : q);
+      }
+      return [updated, ...prev];
+    });
   };
 
   const handleAddSubmission = (sub: Submission) => {
