@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Project, Enumerator } from '../types';
+import { QRCodeSVG } from 'qrcode.react';
 import { 
   QrCode, 
   Smartphone, 

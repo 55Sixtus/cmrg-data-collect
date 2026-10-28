@@ -55,6 +55,15 @@ export default function App() {
   const [selectedProjectIdForSimulator, setSelectedProjectIdForSimulator] = useState<string>('proj-1');
   const [forceDemoAccess, setForceDemoAccess] = useState(false);
 
+  // Register Service Worker for PWA Offline Install
+  useEffect(() => {
+    if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+      navigator.serviceWorker.register('/sw.js').catch((err) => {
+        console.warn('Service worker registration notice:', err);
+      });
+    }
+  }, []);
+
   // Check for URL query params (e.g. ?install=CMRG-123 or PWA standalone launch)
   useEffect(() => {
     try {
