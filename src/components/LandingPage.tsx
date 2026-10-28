@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   MapPin, 
@@ -8,9 +8,7 @@ import {
   ArrowRight, 
   Globe, 
   FileText, 
-  CloudRain,
   Radio,
-  Layers,
   Headphones,
   Check,
   ChevronDown,
@@ -19,6 +17,7 @@ import {
   Download,
   WifiOff
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface LandingPageProps {
   onOpenLogin: () => void;
@@ -31,12 +30,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
   const [showQRModal, setShowQRModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Close mobile menu on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [mobileMenuOpen]);
+
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://app.ourfield.com';
+  const qrUrl = `${currentOrigin}/?install=CMRG-123&connect=true`;
+
   return (
     <div className="min-h-screen bg-white text-[#111827] font-sans flex flex-col selection:bg-[#E30620] selection:text-white">
       {/* 1. TOP HEADER - EXACT MATCH TO IMAGE */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50 px-4 sm:px-8 py-3.5 flex items-center justify-between">
         {/* Left: Authentic CMRG Ltd. Logo */}
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveSection('home')}>
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setActiveSection('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
           <img 
             src="/assets/aistudio/cmrg_logo_clean.png" 
             alt="CMRG Ltd. Communication and Marketing Research Group Limited" 
@@ -47,7 +60,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
         {/* Center Navigation Links */}
         <nav className="hidden md:flex items-center gap-8 text-[13px] font-medium text-gray-700">
           <button 
-            onClick={() => setActiveSection('home')}
+            onClick={() => { setActiveSection('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             className={`transition-colors py-1 ${
               activeSection === 'home' 
                 ? 'text-[#E30620] font-semibold border-b-2 border-[#E30620]' 
@@ -130,7 +143,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
         </button>
       </header>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer (Auto closes on scroll) */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-b border-gray-200 px-6 py-4 flex flex-col gap-3 shadow-lg sticky top-[57px] z-40">
           <button onClick={() => { setActiveSection('home'); setMobileMenuOpen(false); }} className="text-left font-semibold py-1">Home</button>
@@ -160,10 +173,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
         <>
           {/* HERO SECTION - EXACT REPRODUCTION OF THE MARKETING IMAGE */}
           <section className="relative bg-[#07090E] text-white overflow-hidden">
-            {/* Visual background image with high-resolution composite from master image */}
             <div className="w-full max-w-[1400px] mx-auto relative">
               
-              {/* For large screens (desktop): render the exact full hero image banner with interactive overlays */}
+              {/* Desktop banner */}
               <div className="hidden lg:block relative w-full overflow-hidden">
                 <img 
                   src="/assets/aistudio/hero_full_section.jpg" 
@@ -171,7 +183,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                   className="w-full h-auto object-cover select-none"
                 />
 
-                {/* Interactive Clickable Hotspot on the "Scan QR Code" action button */}
                 <button
                   type="button"
                   onClick={() => setShowQRModal(true)}
@@ -179,7 +190,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                   title="Scan QR Code to Access the App"
                 />
 
-                {/* Additional clickable hotspot over the Get Started / Login prompt in phone tablet */}
                 <button
                   type="button"
                   onClick={onContinueAsDemo}
@@ -188,7 +198,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                 />
               </div>
 
-              {/* For responsive screens (< lg): flex layout with high-res typography and devices */}
+              {/* Responsive fallback */}
               <div className="lg:hidden p-6 sm:p-10 space-y-8">
                 <div className="space-y-4">
                   <span className="text-[11px] font-bold tracking-widest text-gray-400 uppercase">
@@ -204,7 +214,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                     A powerful and flexible data collection platform for market research, public opinion polling and field surveys across Nigeria.
                   </p>
 
-                  {/* 4 Feature Badges */}
                   <div className="grid grid-cols-2 gap-3 pt-2">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="w-5 h-5 text-[#E30620] shrink-0" />
@@ -224,7 +233,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                     </div>
                   </div>
 
-                  {/* QR Action Button */}
                   <div className="pt-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <button
                       onClick={() => setShowQRModal(true)}
@@ -241,7 +249,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                   </div>
                 </div>
 
-                {/* Hero visual image */}
                 <div className="pt-4 rounded-2xl overflow-hidden border border-gray-800">
                   <img 
                     src="/assets/aistudio/hero_devices_only.png" 
@@ -254,48 +261,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
             </div>
           </section>
 
-          {/* 3. WHY CMRG DATA COLLECT SECTION (WHITE MIDDLE SECTION) */}
-          <section className="bg-white text-[#111827] py-16 sm:py-20 px-4 sm:px-8 border-b border-gray-100">
+          {/* 3. WHY CHOOSE CMRG DATA COLLECT SECTION */}
+          <section className="bg-gray-50 text-[#111827] py-16 px-4 sm:px-8 border-b border-gray-200">
             <div className="max-w-7xl mx-auto space-y-12">
               
-              {/* Section Header */}
-              <div className="text-center space-y-2 max-w-3xl mx-auto">
-                <span className="text-[11px] font-bold text-[#E30620] uppercase tracking-widest">
-                  WHY CMRG DATA COLLECT
+              <div className="text-center space-y-3 max-w-2xl mx-auto">
+                <span className="text-xs font-bold text-[#E30620] uppercase tracking-wider">
+                  ENTERPRISE ADVANTAGE
                 </span>
-                
-                <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#0B0F17]">
-                  Everything you need for field research
+                <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[#0B0F17]">
+                  Why Choose CMRG Data Collect?
                 </h2>
-
-                <p className="text-xs sm:text-sm text-gray-500 leading-relaxed max-w-2xl mx-auto">
-                  From questionnaire design to real-time monitoring and analytics, CMRG Data Collect brings your data collection workflow together in one powerful platform.
+                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                  Designed from the ground up for African market research agencies, NGOs, and public opinion pollsters requiring bulletproof data integrity.
                 </p>
               </div>
 
-              {/* 6 Feature Cards Grid - Exact replica of the 6 cards in image */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+              {/* 6 Feature Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
-                {/* 1. Build Questionnaires */}
                 <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
                   <div>
                     <div className="w-10 h-10 rounded-xl bg-red-50 text-[#E30620] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
                       <FileText className="w-5 h-5 text-[#E30620]" />
                     </div>
                     <h3 className="text-xs sm:text-sm font-bold text-[#0B0F17] mb-1.5">
-                      Build Questionnaires
+                      Universal Questionnaire Builder
                     </h3>
                     <p className="text-[11px] text-gray-500 leading-relaxed">
-                      Create surveys with advanced logic, multimedia and AI assistance.
+                      20+ question types, branching logic, repeat roster groups, and AI prompt generation.
                     </p>
                   </div>
                 </div>
 
-                {/* 2. Collect in the Field */}
                 <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
                   <div>
                     <div className="w-10 h-10 rounded-xl bg-red-50 text-[#E30620] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                      <Smartphone className="w-5 h-5 text-[#E30620]" />
+                      <WifiOff className="w-5 h-5 text-[#E30620]" />
                     </div>
                     <h3 className="text-xs sm:text-sm font-bold text-[#0B0F17] mb-1.5">
                       Collect in the Field
@@ -306,7 +308,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                   </div>
                 </div>
 
-                {/* 3. Geo-Lock Manager */}
                 <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
                   <div>
                     <div className="w-10 h-10 rounded-xl bg-red-50 text-[#E30620] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
@@ -321,7 +322,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                   </div>
                 </div>
 
-                {/* 4. Ensure Data Quality */}
                 <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
                   <div>
                     <div className="w-10 h-10 rounded-xl bg-red-50 text-[#E30620] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
@@ -336,7 +336,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                   </div>
                 </div>
 
-                {/* 5. Analyse & Visualise */}
                 <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
                   <div>
                     <div className="w-10 h-10 rounded-xl bg-red-50 text-[#E30620] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
@@ -351,7 +350,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                   </div>
                 </div>
 
-                {/* 6. Export Your Data */}
                 <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
                   <div>
                     <div className="w-10 h-10 rounded-xl bg-red-50 text-[#E30620] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
@@ -371,11 +369,114 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
             </div>
           </section>
 
-          {/* 4. "ONE PLATFORM. UNLIMITED POSSIBILITIES." DARK RED SECTION */}
+          {/* 4. PRICING SECTION — EXACT REPRODUCTION OF IMAGE 3 (CMRG Plan) */}
+          <section className="bg-white text-[#111827] py-16 px-4 sm:px-8 border-b border-gray-200">
+            <div className="max-w-7xl mx-auto space-y-10">
+              
+              <div className="text-center space-y-2">
+                <span className="text-xs font-bold text-[#E30620] uppercase tracking-wider">
+                  SIMPLE &amp; TRANSPARENT
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B0F17]">
+                  CMRG Plan
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-500 max-w-xl mx-auto">
+                  We've designed a flexible and affordable plan to give CMRG's research teams everything they need — without the high costs.
+                </p>
+              </div>
+
+              {/* Pricing Card Grid matching Image 3 */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-4 max-w-6xl mx-auto">
+                
+                {/* Left Card: CMRG Research Plan (Cols 1-7) */}
+                <div className="lg:col-span-7 bg-[#FFFBFB] border-2 border-red-200 rounded-3xl p-8 shadow-xl space-y-6 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 bg-[#E30620] text-white text-[10px] font-bold px-4 py-1 rounded-bl-2xl uppercase tracking-wider">
+                    Recommended
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-[#E30620]/10 flex items-center justify-center text-[#E30620]">
+                      <BarChart3 className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-[#0B0F17]">CMRG Research Plan</h3>
+                      <p className="text-xs text-gray-500">Full platform access with offline collection, GPS, dashboards &amp; reports.</p>
+                    </div>
+                  </div>
+
+                  {/* Price Banner */}
+                  <div className="bg-white border border-red-100 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+                    <div>
+                      <div className="text-3xl sm:text-4xl font-black text-[#0B0F17]">
+                        Only $100 <span className="text-xs font-semibold text-gray-500">/ month</span>
+                      </div>
+                      <p className="text-[11px] text-gray-500 mt-0.5">(CMRG Maintenance Fee)</p>
+                    </div>
+                    <button
+                      onClick={onContinueAsDemo}
+                      className="px-6 py-3 bg-[#E30620] hover:bg-red-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all w-full sm:w-auto text-center"
+                    >
+                      Get Started
+                    </button>
+                  </div>
+
+                  {/* Feature Checklist */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-gray-700 font-medium">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-[#E30620] shrink-0" />
+                      <span>Unlimited Projects &amp; Forms</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-[#E30620] shrink-0" />
+                      <span>Unlimited Enumerators (as needed)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-[#E30620] shrink-0" />
+                      <span>Offline Data Collection &amp; Sync</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-[#E30620] shrink-0" />
+                      <span>GPS &amp; Geofencing</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-[#E30620] shrink-0" />
+                      <span>Advanced Dashboards &amp; Reports</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-[#E30620] shrink-0" />
+                      <span>Priority Support</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Card: No Per-User Fees Note (Cols 8-12) */}
+                <div className="lg:col-span-5 bg-gray-50 border border-gray-200 rounded-3xl p-8 space-y-4 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-gray-200/80 text-gray-700 flex items-center justify-center">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+
+                  <h4 className="text-base font-bold text-[#0B0F17]">No Per-User or Per-Survey Fees</h4>
+
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Your $100/month covers the platform maintenance, updates and support. No hidden charges. No extra fees for users or surveys within your plan.
+                  </p>
+
+                  <div className="pt-2 border-t border-gray-200">
+                    <p className="text-lg font-serif italic text-[#E30620] font-bold">
+                      "More research. Less cost."
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </section>
+
+          {/* 5. "ONE PLATFORM. UNLIMITED POSSIBILITIES." DARK RED SECTION */}
           <section className="bg-gradient-to-r from-[#07090E] via-[#090D15] to-[#8A000A] text-white py-14 px-4 sm:px-8 relative overflow-hidden border-b border-gray-900">
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               
-              {/* Left Column (Cols 1-5): Copy & Platform Badges */}
               <div className="lg:col-span-5 space-y-3.5">
                 <span className="text-[11px] font-bold text-[#E30620] uppercase tracking-wider block">
                   ONE PLATFORM. UNLIMITED POSSIBILITIES.
@@ -389,7 +490,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                   Access CMRG Data Collect from your browser, or scan the QR code to use the mobile app on any Android or iOS device.
                 </p>
 
-                {/* 3 Platforms row */}
                 <div className="flex flex-wrap items-center gap-6 pt-2">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">
@@ -423,7 +523,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                 </div>
               </div>
 
-              {/* Center Column (Cols 6-8): Device Mockups Graphic */}
               <div className="lg:col-span-4 flex items-center justify-center">
                 <img 
                   src="/assets/aistudio/bottom_banner_devices_clean.png" 
@@ -432,7 +531,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                 />
               </div>
 
-              {/* Right Column (Cols 9-12): Bold Statement */}
               <div className="lg:col-span-3 text-left lg:text-right space-y-2">
                 <h3 className="text-lg sm:text-xl font-black text-white leading-tight tracking-tight uppercase">
                   BETTER DATA.<br />
@@ -447,11 +545,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
             </div>
           </section>
 
-          {/* 5. BOTTOM TRUST & CAPABILITIES STRIP (WHITE BAR) */}
+          {/* 6. BOTTOM TRUST & CAPABILITIES STRIP (WHITE BAR) */}
           <section className="bg-white border-t border-gray-150 py-4 px-4 sm:px-8">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-gray-700">
               
-              {/* 5 Feature Icons */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 sm:gap-8 font-semibold">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-[#E30620]" />
@@ -459,7 +556,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                 </div>
                 <div className="flex items-center gap-2">
                   <WifiOff className="w-4 h-4 text-[#E30620]" />
-                  <span>Offline & Sync</span>
+                  <span>Offline &amp; Sync</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Radio className="w-4 h-4 text-[#E30620]" />
@@ -475,7 +572,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                 </div>
               </div>
 
-              {/* CMRG Ltd. Brand Mark on the right */}
               <div className="shrink-0 flex items-center gap-2">
                 <img 
                   src="/assets/aistudio/cmrg_logo_clean.png" 
@@ -495,7 +591,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
           <div className="max-w-7xl mx-auto space-y-8">
             <div className="text-center space-y-2">
               <span className="text-xs font-bold text-[#E30620] uppercase tracking-wider">COMPREHENSIVE SUITE</span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B0F17]">All Features & Capabilities</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B0F17]">All Features &amp; Capabilities</h2>
               <p className="text-xs sm:text-sm text-gray-500 max-w-xl mx-auto">Engineered specifically for demanding market research and field data collection agencies across Nigeria.</p>
             </div>
             
@@ -517,7 +613,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
               </div>
               <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
                 <ShieldCheck className="w-7 h-7 text-[#E30620] mb-3" />
-                <h3 className="text-sm font-bold text-[#0B0F17] mb-1.5">Supervisor Quality & Audit</h3>
+                <h3 className="text-sm font-bold text-[#0B0F17] mb-1.5">Supervisor Quality &amp; Audit</h3>
                 <p className="text-xs text-gray-600">Review flagged submissions, verify GPS timestamps, approve supervisor overrides, and inspect audio evidence.</p>
               </div>
               <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
@@ -539,64 +635,83 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
         <section className="bg-white text-[#111827] py-16 px-4 sm:px-8 flex-1">
           <div className="max-w-7xl mx-auto space-y-10">
             <div className="text-center space-y-2">
-              <span className="text-xs font-bold text-[#E30620] uppercase tracking-wider">TRANSPARENT PLANS</span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B0F17]">Flexible Pricing for Research Teams</h2>
-              <p className="text-xs sm:text-sm text-gray-500 max-w-xl mx-auto">Choose the tier that matches your research volume, field teams, and geographical reach across Nigeria.</p>
+              <span className="text-xs font-bold text-[#E30620] uppercase tracking-wider">SIMPLE &amp; TRANSPARENT</span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B0F17]">CMRG Plan</h2>
+              <p className="text-xs sm:text-sm text-gray-500 max-w-xl mx-auto">We've designed a flexible and affordable plan to give CMRG's research teams everything they need — without the high costs.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-              <div className="bg-gray-50 border border-gray-200 rounded-3xl p-6 flex flex-col justify-between">
-                <div>
-                  <span className="text-xs font-bold text-gray-500 uppercase">Starter Field</span>
-                  <h3 className="text-xl font-extrabold text-[#0B0F17] mt-1 mb-3">₦150,000 <span className="text-xs font-normal text-gray-500">/ month</span></h3>
-                  <p className="text-xs text-gray-600 mb-4">Ideal for boutique polling teams and independent researchers.</p>
-                  <ul className="space-y-2 text-xs text-gray-700">
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#E30620]" /> Up to 15 Active Enumerators</li>
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#E30620]" /> Offline Mobile PWA Support</li>
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#E30620]" /> GPS Boundary Verification</li>
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#E30620]" /> Standard CSV & Excel Export</li>
-                  </ul>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-4 max-w-6xl mx-auto">
+              <div className="lg:col-span-7 bg-[#FFFBFB] border-2 border-red-200 rounded-3xl p-8 shadow-xl space-y-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-[#E30620] text-white text-[10px] font-bold px-4 py-1 rounded-bl-2xl uppercase tracking-wider">
+                  Recommended
                 </div>
-                <button onClick={onContinueAsDemo} className="w-full mt-6 py-2.5 bg-[#0B0F17] text-white font-bold rounded-xl text-xs hover:bg-gray-800 transition-all">
-                  Get Started
-                </button>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#E30620]/10 flex items-center justify-center text-[#E30620]">
+                    <BarChart3 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-[#0B0F17]">CMRG Research Plan</h3>
+                    <p className="text-xs text-gray-500">Full platform access with offline collection, GPS, dashboards &amp; reports.</p>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-red-100 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+                  <div>
+                    <div className="text-3xl sm:text-4xl font-black text-[#0B0F17]">
+                      Only $100 <span className="text-xs font-semibold text-gray-500">/ month</span>
+                    </div>
+                    <p className="text-[11px] text-gray-500 mt-0.5">(CMRG Maintenance Fee)</p>
+                  </div>
+                  <button
+                    onClick={onContinueAsDemo}
+                    className="px-6 py-3 bg-[#E30620] hover:bg-red-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all w-full sm:w-auto text-center"
+                  >
+                    Get Started
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-gray-700 font-medium">
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-[#E30620] shrink-0" />
+                    <span>Unlimited Projects &amp; Forms</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-[#E30620] shrink-0" />
+                    <span>Unlimited Enumerators (as needed)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-[#E30620] shrink-0" />
+                    <span>Offline Data Collection &amp; Sync</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-[#E30620] shrink-0" />
+                    <span>GPS &amp; Geofencing</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-[#E30620] shrink-0" />
+                    <span>Advanced Dashboards &amp; Reports</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-[#E30620] shrink-0" />
+                    <span>Priority Support</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="bg-[#0B0F17] text-white border-2 border-[#E30620] rounded-3xl p-6 flex flex-col justify-between relative shadow-xl">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#E30620] text-white text-[10px] font-bold uppercase px-3 py-0.5 rounded-full">
-                  Most Popular
+              <div className="lg:col-span-5 bg-gray-50 border border-gray-200 rounded-3xl p-8 space-y-4 shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-gray-200/80 text-gray-700 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5" />
                 </div>
-                <div>
-                  <span className="text-xs font-bold text-[#E30620] uppercase">Enterprise Agency</span>
-                  <h3 className="text-xl font-extrabold mt-1 mb-3">₦450,000 <span className="text-xs font-normal text-gray-400">/ month</span></h3>
-                  <p className="text-xs text-gray-300 mb-4">Built for national research agencies conducting multi-state fieldwork.</p>
-                  <ul className="space-y-2 text-xs text-gray-200">
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#E30620]" /> Unlimited Enumerators</li>
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#E30620]" /> Leaflet Geo-Lock Polygons</li>
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#E30620]" /> Supabase Realtime Telemetry</li>
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#E30620]" /> SPSS (.sav) & Stata (.dta) Exports</li>
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#E30620]" /> NDPR Data Retention Automation</li>
-                  </ul>
+                <h4 className="text-base font-bold text-[#0B0F17]">No Per-User or Per-Survey Fees</h4>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Your $100/month covers the platform maintenance, updates and support. No hidden charges. No extra fees for users or surveys within your plan.
+                </p>
+                <div className="pt-2 border-t border-gray-200">
+                  <p className="text-lg font-serif italic text-[#E30620] font-bold">
+                    "More research. Less cost."
+                  </p>
                 </div>
-                <button onClick={onContinueAsDemo} className="w-full mt-6 py-2.5 bg-[#E30620] hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-all shadow-md">
-                  Start Enterprise Trial
-                </button>
-              </div>
-
-              <div className="bg-gray-50 border border-gray-200 rounded-3xl p-6 flex flex-col justify-between">
-                <div>
-                  <span className="text-xs font-bold text-gray-500 uppercase">Government / NGO</span>
-                  <h3 className="text-xl font-extrabold text-[#0B0F17] mt-1 mb-3">Custom</h3>
-                  <p className="text-xs text-gray-600 mb-4">For censuses, multilateral agencies, and nationwide surveys.</p>
-                  <ul className="space-y-2 text-xs text-gray-700">
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#E30620]" /> Sovereign / Dedicated Cloud Host</li>
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#E30620]" /> Custom API & ODK Endpoints</li>
-                    <li className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#E30620]" /> 24/7 Field Support SLA</li>
-                  </ul>
-                </div>
-                <button onClick={onOpenLogin} className="w-full mt-6 py-2.5 bg-gray-200 text-[#0B0F17] font-bold rounded-xl text-xs hover:bg-gray-300 transition-all">
-                  Contact Sales
-                </button>
               </div>
             </div>
           </div>
@@ -609,7 +724,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
             <div className="text-center space-y-2">
               <span className="text-xs font-bold text-[#E30620] uppercase tracking-wider">ABOUT CMRG LTD</span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0B0F17]">Communication and Marketing Research Group Limited</h2>
-              <p className="text-xs text-gray-500 font-semibold">RC37852 • Premier Research & Field Intelligence Agency</p>
+              <p className="text-xs text-gray-500 font-semibold">RC37852 • Premier Research &amp; Field Intelligence Agency</p>
             </div>
             
             <div className="text-xs sm:text-sm text-gray-600 space-y-4 leading-relaxed">
@@ -648,81 +763,78 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
               onClick={() => setShowQRModal(false)}
               className="absolute top-4 right-4 p-2 text-gray-400 hover:text-black rounded-full bg-gray-100"
             >
-              <X className="w-5 h-5" />
+              ✕
             </button>
-            
-            <div className="w-12 h-12 bg-red-50 text-[#E30620] rounded-2xl mx-auto flex items-center justify-center shadow-inner">
+
+            <div className="w-12 h-12 rounded-2xl bg-[#E30620]/10 text-[#E30620] flex items-center justify-center mx-auto">
               <QrCode className="w-6 h-6" />
             </div>
 
-            <div>
-              <h3 className="text-lg font-bold text-[#0B0F17]">Scan QR with Phone Camera</h3>
-              <p className="text-xs text-gray-500 mt-1">
-                Scan to open browser page → tap <b>"INSTALL APP"</b> to add to home screen with offline sync.
-              </p>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-gray-900">Scan to Install PWA</h3>
+              <p className="text-xs text-gray-500">Scan with any phone camera to install CMRG Data Collect instantly.</p>
             </div>
 
-            <div className="w-52 h-52 bg-gradient-to-br from-[#0B0F17] to-[#17243A] border-2 border-[#E30620] rounded-2xl p-4 mx-auto flex flex-col items-center justify-center relative shadow-lg">
-              <div className="bg-white p-2.5 rounded-xl flex flex-col items-center justify-center shadow-md">
-                <QrCode className="w-28 h-28 text-[#0B0F17]" />
-                <span className="text-[9px] font-mono font-bold text-[#E30620] mt-1 tracking-wider">SCAN TO INSTALL</span>
-              </div>
-              <span className="text-[10px] font-mono text-gray-300 mt-2">
-                app.ourfield.com/install/CMRG-2026-NGR
-              </span>
+            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 flex justify-center">
+              <QRCodeSVG value={qrUrl} size={180} level="H" includeMargin={true} />
             </div>
 
-            <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-xs font-mono font-bold text-gray-800">
-              Link: app.ourfield.com/install/CMRG-2026-NGR
-            </div>
+            <p className="text-[10px] text-gray-400 font-mono break-all">{qrUrl}</p>
 
-            <div className="space-y-2 pt-1">
-              <button
-                onClick={() => {
-                  setShowQRModal(false);
-                  if (onOpenInstall) {
-                    onOpenInstall('CMRG-2026-NGR');
-                  } else {
-                    onContinueAsDemo();
-                  }
-                }}
-                className="w-full py-3.5 bg-[#E30620] hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                <span>Open Phone Install Page (PWA)</span>
-              </button>
-
-              <button
-                onClick={() => { setShowQRModal(false); onContinueAsDemo(); }}
-                className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-xs transition-all"
-              >
-                Or Continue to Web Console
-              </button>
-            </div>
+            <button
+              onClick={() => setShowQRModal(false)}
+              className="w-full py-3 bg-[#E30620] hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-md transition-all"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
 
-      {/* FOOTER */}
-      <footer className="bg-[#05070B] text-gray-400 py-10 px-4 sm:px-8 border-t border-gray-900 text-xs">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <img 
-              src="/assets/aistudio/cmrg_logo_clean.png" 
-              alt="CMRG Ltd." 
-              className="h-6 w-auto object-contain brightness-200"
-            />
-            <span className="text-[11px] text-gray-500">© 2026 CMRG Ltd. All rights reserved.</span>
+      {/* Footer */}
+      <footer className="bg-[#0B0F17] text-white py-12 px-4 sm:px-8 border-t border-gray-800">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-xs">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <img src="/assets/aistudio/cmrg_logo_clean.png" alt="CMRG Ltd." className="h-7 w-auto object-contain filter brightness-0 invert" />
+            </div>
+            <p className="text-gray-400 leading-relaxed text-[11px]">
+              Communication and Marketing Research Group Limited (CMRG Ltd.) is Nigeria's premier field intelligence and market research agency.
+            </p>
           </div>
-
-          <div className="text-[11px] text-gray-500 flex items-center gap-4">
-            <span className="hover:text-gray-300 cursor-pointer" onClick={() => setActiveSection('about')}>About</span>
-            <span className="hover:text-gray-300 cursor-pointer" onClick={() => setActiveSection('pricing')}>Pricing</span>
-            <span className="hover:text-gray-300 cursor-pointer" onClick={() => setActiveSection('support')}>Support</span>
-            <span className="hover:text-gray-300 cursor-pointer" onClick={onOpenLogin}>Supervisor Sign In</span>
+          <div>
+            <h4 className="font-bold text-white mb-3 uppercase tracking-wider text-[11px]">Quick Links</h4>
+            <ul className="space-y-2 text-gray-400">
+              <li><button onClick={() => { setActiveSection('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-white transition-colors">Home</button></li>
+              <li><button onClick={() => setActiveSection('features')} className="hover:text-white transition-colors">Features &amp; Capabilities</button></li>
+              <li><button onClick={() => setActiveSection('pricing')} className="hover:text-white transition-colors">Pricing &amp; Plans</button></li>
+              <li><button onClick={() => setActiveSection('about')} className="hover:text-white transition-colors">About CMRG Ltd.</button></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-bold text-white mb-3 uppercase tracking-wider text-[11px]">Research Services</h4>
+            <ul className="space-y-2 text-gray-400">
+              <li>Market Research &amp; FMCG</li>
+              <li>Public Opinion Polling</li>
+              <li>Household Socio-Economic Surveys</li>
+              <li>Retail Audit &amp; Price Tracking</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-bold text-white mb-3 uppercase tracking-wider text-[11px]">Contact &amp; Support</h4>
+            <ul className="space-y-2 text-gray-400">
+              <li>Lagos, Nigeria</li>
+              <li>support@cmrg.org</li>
+              <li>+234 (01) 295 4820</li>
+            </ul>
           </div>
         </div>
+        <div className="max-w-7xl mx-auto mt-10 pt-6 border-t border-gray-800 text-center text-[10px] text-gray-500 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p>© 2026 Communication and Marketing Research Group Limited (CMRG Ltd.). All rights reserved.</p>
+          <p>Engineered by Sixtus Tech Hub</p>
+        </div>
       </footer>
+
     </div>
   );
 };

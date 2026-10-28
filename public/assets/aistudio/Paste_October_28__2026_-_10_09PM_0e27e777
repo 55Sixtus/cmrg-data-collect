@@ -1,0 +1,793 @@
+# CMRG DATA COLLECT ENTERPRISE PLATFORM
+## CONSOLIDATED MANAGEMENT REQUIREMENTS, PRODUCTION HARDENING, MAP REPAIR AND ACCEPTANCE IMPLEMENTATION
+
+**Company:** Communication and Marketing Research Group Limited (CMRG Ltd.)  
+**Engineering:** Sixtus Tech Hub  
+**Project:** CMRG Data Collect Enterprise Platform  
+**Current milestone:** Phase 2.9 — Production Verification and Remediation  
+**Next objective:** Complete the remaining production requirements and prepare an evidence-based production acceptance package.
+
+## EXECUTIVE INSTRUCTION
+
+You are working on the existing CMRG Data Collect application. Management has reviewed the project's progress and supplied the detailed requirements included in this task.
+
+Your responsibility is to inspect the actual existing source code, identify gaps, implement the necessary corrections, test what can genuinely be tested, and produce an accurate implementation and acceptance report.
+
+This is an existing application. Do not create a replacement application, generate a new disconnected prototype, or redesign the entire platform.
+
+The goal is a secure, reliable, maintainable enterprise research platform that CMRG can use for genuine market research, public opinion polling, household surveys, customer satisfaction research, social research and other questionnaire-based fieldwork.
+
+**Critical rule:** A screen, button, dashboard, map, feature description or successful build does not prove that its underlying functionality works. Verify the actual behavior and underlying data wherever the available environment permits.
+
+Never invent test results, database records, successful deployments, device tests, ownership confirmations or security evidence.
+
+---
+
+# PART 1 — PRESERVE THE EXISTING ARCHITECTURE
+
+Before editing, inspect the actual project structure and existing implementation.
+
+The reported architecture is:
+
+- React 19, TypeScript and Vite.
+- Tailwind CSS v4 and the existing CMRG-branded interface.
+- Supabase authentication and PostgreSQL.
+- Supabase Row-Level Security (RLS).
+- IndexedDB for offline questionnaire data and pending submissions.
+- Leaflet, OpenStreetMap and Nominatim for relevant geospatial features, if confirmed in the current code.
+- SheetJS (`xlsx`) for Excel exports, if confirmed in the current code.
+- A Vercel deployment and PWA installation workflow.
+
+Reported files that may be relevant include:
+
+- `src/App.tsx`
+- `src/lib/supabase.ts`
+- `src/services/dataService.ts`
+- `src/services/offlineQueue.ts`
+- `src/services/questionnaireLogicEngine.ts`
+- `src/services/universalQuestionnaireTemplates.ts`
+- `src/components/Dashboard.tsx`
+- `src/components/FormBuilder.tsx`
+- `src/components/FieldPwaView.tsx`
+- `src/components/QuestionRenderer.tsx`
+- `src/components/GeoLockManager.tsx`
+- `src/components/WhatsAppQrConnectModal.tsx`
+- `src/components/MobileInstallPage.tsx`
+- `public/manifest.json`
+- `public/sw.js`
+- Existing Supabase migrations and deployment configuration.
+
+These are inspection leads, not permission to assume the files or features exist exactly as described. Inspect the repository and use its actual paths.
+
+### Mandatory architectural rules
+
+1. Preserve the existing React/TypeScript/Vite application.
+2. Preserve Supabase/PostgreSQL. Do not migrate to Firebase or another database.
+3. Preserve the existing CMRG branding and approved interface wherever possible.
+4. Reuse existing services and components rather than creating duplicate implementations.
+5. Do not replace real functionality with mock records, hardcoded success messages or simulated backend responses.
+6. Keep development, preview and production environments isolated.
+7. Do not introduce an automatic fallback that silently redirects a misconfigured staging or preview build to the production database.
+8. Never place a Supabase service-role key, private credential or other privileged secret in browser-side code.
+9. Use existing dependency versions and project conventions unless a change is necessary and justified.
+10. Make changes incrementally, maintain consistency across affected files, and resolve regressions introduced by your changes.
+
+The reported Supabase project reference is `kmwzmyupvqjitugpckzp`. Verify the actual configuration before using it. Never expose credentials in your final report.
+
+---
+
+# PART 2 — AUDIT AND CLASSIFY ALL MANAGEMENT REQUIREMENTS
+
+Create an internal requirements checklist covering every section of this task.
+
+For every requirement, classify it as one of the following:
+
+- **Implemented and verified:** supported by actual test results or reliable operational evidence.
+- **Implemented but not verified:** code appears present, but the required operational test has not been completed.
+- **Partially implemented:** some functionality exists but important requirements are missing.
+- **Outstanding:** implementation is absent or inadequate.
+- **Blocked by external action:** requires an authorized account, credential, deployment setting, real device, or management decision.
+
+Record the relevant files, evidence, gaps and corrective action for each requirement.
+
+Do not classify a requirement as verified merely because a related component exists.
+
+After the audit, implement the safe, actionable code-level corrections in this task. Do not stop after generating a report.
+
+If a necessary external resource is unavailable, complete the other independent work and clearly identify the blocker.
+
+---
+
+# PART 3 — FIX THE MAP “API KEY REQUIRED” ERROR
+
+The deployed application displays **“API key required” inside the map area**.
+
+This is a known outstanding issue and must be investigated directly.
+
+### Investigation
+
+Search the actual codebase for:
+
+- `maps.googleapis.com`
+- `google.maps`
+- Google Maps packages and components.
+- Google Maps API-key environment variables.
+- Leaflet map initialization and tile URLs.
+- OpenStreetMap tile configuration.
+- Map-provider dependencies and configuration.
+- The component used by the login/get-started screen and any other affected map screens.
+
+Determine the actual map provider responsible for the error.
+
+Distinguish between:
+1. A missing or invalid Google Maps API key.
+2. A Google Maps API that has not been enabled.
+3. A billing or referrer-restriction problem.
+4. An incorrect environment variable or deployment configuration.
+5. An unnecessary Google Maps dependency where the project already has a suitable Leaflet/OpenStreetMap implementation.
+6. A different map provider or tile service with its own requirements.
+
+### Implement the correct fix
+
+**If Google Maps is not actually required:** remove or replace only the unnecessary dependency or component causing the error. Reuse the existing Leaflet/OpenStreetMap implementation if suitable. Preserve the intended map functionality and proper attribution.
+
+**If Google Maps is intentionally required:** do not invent, hardcode or expose an API key. Identify the exact required API, configuration variable, authorized Google Cloud project settings, billing requirements where applicable, and deployment configuration. Clearly state which action must be completed by an authorized CMRG administrator.
+
+**If another map provider is responsible:** identify its real requirements and correct its configuration or implementation accordingly.
+
+The fix must preserve genuine map rendering, available location coordinates, GPS capture, geofencing, survey-location records and relevant monitoring features.
+
+A failed map must not crash the login page or application. Show a useful error or fallback when a map cannot load.
+
+Do not use a decorative static image as a substitute for an operational map. Do not fabricate enumerator locations or report GPS success when no valid location was obtained.
+
+Test all relevant map components, including the login/get-started map and the Situation Room map if they use different implementations.
+
+In your report, explicitly answer:
+- What caused the error?
+- Was an API key actually necessary?
+- What did you change?
+- Does CMRG management need to provide credentials or authorize a cloud project?
+- What remains to be configured in the deployment environment?
+- Has the deployed production map been retested, or has only the code been tested?
+
+---
+
+# PART 4 — AUTHENTICATION, INDIVIDUAL ACCOUNTS AND ACCESS CONTROL
+
+Every normal fieldwork user must have an individual account.
+
+Support appropriate roles for:
+
+- Platform administrator.
+- Research manager.
+- Supervisor.
+- Enumerator.
+- Client or client reviewer, where authorized.
+
+Use the existing role model if suitable, extending it carefully where required.
+
+### Required behavior
+
+1. Enforce authorization on the backend through verified Supabase Auth identity, RLS policies and appropriate database relationships.
+2. Restrict each user to the projects and operations explicitly authorized for their role.
+3. Ensure a client cannot access another client's project data.
+4. Ensure an enumerator cannot read or modify another enumerator's private or restricted records unless explicitly authorized.
+5. Prevent users from granting themselves elevated roles or project memberships.
+6. Apply authorization to reads, inserts, updates, deletes, review actions, exports and relevant file access.
+7. Protect audit logs against unauthorized modification.
+8. Do not rely on hiding frontend buttons as the security boundary.
+9. Validate the actual authenticated identity in privileged database functions and server-side operations.
+10. Avoid overly broad RLS policies and unsafe `SECURITY DEFINER` functions.
+11. Check function ownership, execution grants and `search_path` settings where applicable.
+12. Preserve individual enumerator attribution when devices are shared.
+
+Inspect the existing core tables, which have previously been reported as:
+
+`profiles`, `projects`, `project_memberships`, `questionnaires`, `questionnaire_versions`, `submissions`, `submission_answers`, `review_flags`, and `audit_events`.
+
+Verify the actual schema rather than assuming it matches the report.
+
+Do not weaken RLS to make a test pass.
+
+### Required security tests
+
+Where test credentials and database access are available, test at least:
+
+- Anonymous access.
+- Enumerator access to an assigned project.
+- Enumerator access to an unassigned project.
+- Supervisor access within and outside authorized projects.
+- Research manager access.
+- Client access to authorized and unauthorized records.
+- Attempts to manipulate project IDs or user IDs.
+- Unauthorized role escalation.
+- Unauthorized submission updates and deletions.
+- Unauthorized audit-log access or modification.
+
+Record the actual outcome of each test. If a live test requires credentials or a second account that is unavailable, mark it pending.
+
+---
+
+# PART 5 — QUESTIONNAIRE AUTHORING AND APPROVAL
+
+Ensure administrators and authorized research managers can create and manage real questionnaires. Allow additional supervisor permissions only where explicitly configured.
+
+Support, to the extent feasible within the existing questionnaire engine:
+
+- Text and long-text questions.
+- Single-select and multiple-select questions.
+- Numeric and decimal values.
+- Dates and times.
+- Yes/no questions.
+- Required fields.
+- Validation rules and ranges.
+- Skip logic.
+- Conditional visibility.
+- Calculated values.
+- Multilingual labels and options.
+- Repeat groups.
+- Relevant media questions.
+- GPS questions where configured.
+- Questionnaire version history.
+- Draft, review, approved and published states.
+
+### Publication controls
+
+A newly created questionnaire must not become publicly accessible simply because it exists.
+
+Implement or complete the workflow:
+
+Draft → Submit for review → Approve → Publish.
+
+Restrict approval and publication to authorized roles. Preserve a record of who performed each action and when.
+
+Published questionnaires must reference an identifiable version. Changes to an active questionnaire must not silently reinterpret earlier submissions.
+
+Provide a safe process for publishing a revised version and determining which version an interview used.
+
+### XLSForm import
+
+Inspect whether the project already supports XLSForm import.
+
+If feasible, implement a validated import workflow for compatible XLSForm files. It should:
+
+- Parse supported survey, choices and settings structures.
+- Support common question types and relevant skip/conditional expressions.
+- Validate question names, choice lists, references and unsupported features.
+- Display understandable errors with sheet and row references where possible.
+- Avoid publishing invalid imports.
+- Preserve a draft for review.
+- Clearly document unsupported XLSForm features.
+
+Do not claim full XLSForm compatibility unless the implementation and representative tests support that claim.
+
+### Questionnaire acceptance tests
+
+Create or use a representative test questionnaire containing required fields, a conditional question, skip logic, validation, a calculated value and a version change.
+
+Test actual behavior, not just rendering. Verify that invalid answers are blocked or handled correctly and that the recorded answers correspond to the questionnaire version used.
+
+---
+
+# PART 6 — OFFLINE-FIRST FIELDWORK AND DATA INTEGRITY
+
+Offline operation is a core production requirement.
+
+Inspect and improve the existing IndexedDB queue and submission lifecycle rather than replacing them unnecessarily.
+
+### Required capabilities
+
+1. Enumerators can access questionnaires assigned to them and download or prepare them before going offline.
+2. Interviews can be started, saved as drafts, paused, resumed and completed without a continuous internet connection.
+3. Locally stored interviews survive application restarts and temporary network failures.
+4. Each interview has a stable client-generated UUID.
+5. Queue state is durable and clearly visible to the user.
+6. Pending submissions are retried safely when connectivity returns.
+7. Failed submissions remain stored until resolved.
+8. A timeout or uncertain network result must not cause an interview to be silently deleted.
+9. Successful synchronization must be reflected accurately in the user interface.
+10. The system distinguishes draft, queued, syncing, synced, failed and review-required states where appropriate.
+11. The user can inspect relevant synchronization errors and retry safely.
+12. Duplicate retries do not create duplicate submissions.
+13. A successful server write is verified before the local item is removed.
+14. Database relationships and project authorization are checked during synchronization.
+15. The queue survives upgrades and schema changes through safe migration or recovery procedures.
+
+### Duplicate handling
+
+Inspect the unique constraint on `client_submission_uuid` and the existing handling of PostgreSQL error `23505`.
+
+Never treat every duplicate-key error as proof that a queued interview was successfully stored.
+
+Verify that the existing server record matches the intended identity and relevant submission context, including the authorized user and project, as required by the schema. A conflicting record must be investigated rather than accepted automatically.
+
+Only mark an item synchronized or remove it from the queue when the intended server record has been verified.
+
+Preserve a recoverable local copy when verification fails.
+
+### Service worker and PWA
+
+Inspect the current service worker, cache strategy and offline routing.
+
+Do not cache sensitive authenticated responses in a way that allows one user to see another user's information on a shared device. Ensure logout and account switching handle locally cached sensitive data safely.
+
+Explain any limitations of browser storage, device cleanup and private-browsing modes to users.
+
+### Required automated tests
+
+Where possible, test:
+
+- Offline save and application restart.
+- Multiple queued interviews.
+- Reconnection and successful synchronization.
+- Network interruption during synchronization.
+- Timeout after the server may have committed a record.
+- Retry of an already accepted submission.
+- Conflicting duplicate identifiers.
+- Project mismatch.
+- Invalid authentication or expired session.
+- Local data retention after a failed sync.
+- Queue recovery after application updates.
+
+Provide real test output. Do not claim physical-device offline acceptance unless tested on an actual device.
+
+---
+
+# PART 7 — QR ACCESS, PWA INSTALLATION AND DEVICE SUPPORT
+
+Support responsive web access on:
+
+- Android phones and tablets.
+- iPhones and iPads.
+- Desktop computers using compatible browsers.
+
+### Installation and QR behavior
+
+The official QR code must direct users to the approved CMRG production domain and the intended installation or project-access workflow.
+
+Android users should receive an install option where supported.
+
+iPhone and iPad users must receive clear instructions to open the site in Safari and use Add to Home Screen where supported.
+
+Check:
+
+- PWA manifest name, icons, display mode, start URL and theme colors.
+- Service-worker registration and update behavior.
+- HTTPS requirements.
+- Correct production URLs.
+- Install page routing and refresh behavior.
+- Offline application shell.
+- QR generation and scanning.
+- Authentication and access-code validation.
+
+If the project uses invitation links or access codes, implement appropriate server-side validation, expiration and revocation.
+
+Access codes must not grant broad access to every project. A QR code must not bypass authentication, project membership, questionnaire publication or role permissions.
+
+Do not place privileged secrets or unrestricted access tokens in QR URLs.
+
+If the application uses a route such as `/app/CMRG-739`, verify that it resolves to a valid and authorized workflow; do not assume the example code is an actual production credential.
+
+Provide individual account attribution throughout the fieldwork process.
+
+Do not claim Android and iOS installation is verified unless tested on actual devices. Prepare a concise device-testing checklist for the remaining manual steps.
+
+---
+
+# PART 8 — GPS, GEOLOCKING AND FIELDWORK EXCEPTIONS
+
+Inspect the existing geospatial implementation and reuse the appropriate Leaflet/OpenStreetMap, geocoding and coordinate-validation services.
+
+GPS capture must be configurable at project level.
+
+When GPS is required, capture the available latitude, longitude, timestamp and accuracy information, along with appropriate status and permission/error information.
+
+Do not fabricate coordinates or conceal uncertainty.
+
+### Implement or complete three project-level modes
+
+**1. Strict Mode**
+
+Enforce configured location requirements. Where location cannot be verified, retain the interview safely and apply the configured restriction or review workflow. Any override must be authorized and auditable.
+
+**2. Flexible Mode**
+
+Allow an interview outside the configured area where policy permits, but flag the location discrepancy for authorized review.
+
+**3. GPS Assistance Mode**
+
+Allow fieldwork to continue when GPS is unreliable, denied or unavailable, subject to project policy. Record the reason and any available location accuracy or uncertainty information. Flag the record for review where appropriate.
+
+### Geofence requirements
+
+- Support configurable survey locations and permitted areas.
+- Support relevant radius and polygon definitions where implemented.
+- Validate coordinate formats and range.
+- Calculate geographic distances correctly.
+- Handle poor accuracy, missing location, permission denial and timeout separately.
+- Do not treat an inaccurate GPS fix as automatic evidence of misconduct.
+- Retain reviewable submissions securely.
+- Allow authorized supervisors to review, approve or reject with a recorded reason.
+- Preserve the original submission and location evidence in the audit trail.
+- Record any supervisor override and the identity of the person making it.
+
+The UI must distinguish between a confirmed location, an uncertain location, a missing location and an out-of-boundary location.
+
+Test location permissions and geofence calculations using deterministic test coordinates. Physical GPS testing remains a separate acceptance step.
+
+---
+
+# PART 9 — MEDIA, CONSENT AND PRIVACY
+
+Support configurable project-level requirements for photographs, audio, video and enumerator selfie checkpoints where appropriate.
+
+All collection must be transparent and initiated through appropriate user interactions.
+
+Requirements:
+
+- Never activate a camera or microphone silently.
+- Request browser/device permissions correctly.
+- Explain the purpose of the collection to the relevant user.
+- Record consent where required by project policy and applicable law.
+- Handle permission denial without crashing or falsely recording success.
+- Link media to the correct authorized submission.
+- Validate upload size, file type and upload status.
+- Preserve local media safely when offline, where technically feasible.
+- Retry uploads without creating duplicate or orphaned records.
+- Restrict file access using appropriate storage policies and authorization.
+- Avoid publicly accessible media URLs for sensitive research material.
+- Define retention and deletion behavior consistent with the project's approved policy.
+- Protect enumerator and respondent privacy in logs and reports.
+
+Document storage limits, browser/device limitations and any features that remain unsupported.
+
+---
+
+# PART 10 — SUBMISSION REVIEW AND AUDIT TRAIL
+
+Complete the supervisor/research manager review workflow.
+
+Authorized reviewers should be able to:
+
+- View submissions within their authorized projects.
+- Inspect relevant answers, location evidence and media where permitted.
+- Flag quality or integrity concerns.
+- Request clarification where the workflow supports it.
+- Approve or reject submissions.
+- Record a reason for review decisions.
+- View previous review actions and relevant history.
+
+Preserve the original submitted record.
+
+Corrections, clarifications and review decisions must not silently overwrite original answers or erase the history of a submitted interview.
+
+Use a traceable model for review events, corrected versions or amendments, consistent with the existing database architecture.
+
+Record important actions in the audit log, including questionnaire approval/publication, relevant administrative changes, submission review, approval, rejection and authorized overrides.
+
+Enforce authorization on both the UI and backend.
+
+---
+
+# PART 11 — REAL DASHBOARDS, SITUATION ROOM AND REPORTING
+
+Inspect every operational dashboard, chart, counter, map, activity ticker and report screen.
+
+Remove or clearly label mock/demo data where it could be confused with real operational data.
+
+### Required monitoring
+
+Provide accurate, role-appropriate information about:
+
+- Projects and questionnaire publication status.
+- Submission counts and fieldwork progress.
+- Enumerator assignments and available activity status.
+- Pending synchronization where that information is available.
+- Submissions requiring review.
+- Quality flags.
+- Relevant GPS or geofence exceptions.
+- Recent authorized project activity.
+- Approved research metrics and summary statistics.
+
+Support useful filters by project, questionnaire, enumerator, date, location and submission status, where relevant.
+
+### Situation Room
+
+Use actual authorized database records for the Situation Room.
+
+Display a map only when valid location records exist. Distinguish between the last known location, the location captured with a submission and a live location update. Do not label historical submission coordinates as live tracking.
+
+Respect device permissions, user privacy, project policy and role restrictions.
+
+Realtime monitoring must have a reliable loading state, error state, empty state and reconnection behavior. Verify subscriptions and clean up listeners appropriately.
+
+### Charts
+
+Use genuine database-derived values for pie charts, bar charts, progress summaries and other visualizations.
+
+Ensure the numbers match the underlying records and relevant filters.
+
+Do not display hardcoded KPI values or synthetic enumerator locations as production metrics. If demo mode exists, label it prominently and separate it from production data.
+
+### CSV and Excel exports
+
+Verify that exports contain actual authorized records and respect project permissions and filters.
+
+Support appropriate exports of research data to CSV and genuine binary `.xlsx` files.
+
+For Excel exports:
+
+- Verify the output is a valid XLSX workbook, not CSV text renamed with an `.xlsx` extension.
+- Use the existing SheetJS dependency if appropriate.
+- Use meaningful worksheets and column headers.
+- Preserve data types where practical.
+- Handle large exports safely within application limits.
+- Sanitize spreadsheet-formula injection risks for untrusted text.
+- Avoid unnecessarily exposing respondent identifiers, coordinates or media links.
+- Enforce authorization before generating the export.
+
+Where feasible, provide clear export errors and a record of relevant export actions.
+
+---
+
+# PART 12 — DATABASE, BACKUPS, RESTORATION AND OWNERSHIP
+
+Inspect the existing Supabase schema, migrations, indexes, foreign keys, constraints, RLS policies, storage configuration and relevant database functions.
+
+Ensure submission records and associated answers are correctly related and stored.
+
+Do not apply destructive production schema changes without an explicit, safe migration strategy.
+
+Review:
+
+- Required indexes and query performance.
+- Foreign-key integrity.
+- Unique submission identifiers.
+- Project memberships and role relationships.
+- RLS policies and database grants.
+- Storage bucket permissions.
+- Audit record integrity.
+- Database migration history.
+- Environment separation.
+- Data export and portability.
+
+### Backups and recovery
+
+Document the actual backup arrangements available in the current Supabase plan and deployment.
+
+Provide a practical restoration procedure covering database records and relevant stored media/configuration.
+
+If a restore can safely be tested in a separate non-production environment, test it and report the result.
+
+Do not perform a destructive restoration against production merely to demonstrate the procedure.
+
+Do not claim backups are configured or restoration has been tested unless evidence confirms it.
+
+Identify who holds the required administrative access and what CMRG must retain to manage its own platform independently.
+
+---
+
+# PART 13 — ENVIRONMENT CONFIGURATION AND DEPLOYMENT
+
+Inspect the real environment-variable handling and deployment configuration.
+
+Validate required public configuration explicitly at startup. Fail clearly when a required value is missing or invalid.
+
+Do not silently redirect staging, preview or development environments to production.
+
+Keep private credentials server-side. Only the intended public Supabase key may be used in browser code, subject to the existing Supabase security model and RLS.
+
+Inspect the deployment settings for:
+
+- Correct Supabase URL and public key.
+- Production versus preview environment isolation.
+- PWA start URLs and route handling.
+- Map-provider configuration.
+- Relevant public application URLs.
+- CORS or redirect settings where applicable.
+- Authentication redirect URLs.
+- Storage configuration.
+- Build and deployment failures.
+
+Do not assume that changing local code updates Vercel automatically. Confirm the repository/deployment workflow and report whether deployment has actually occurred.
+
+Never print secrets in logs, source snippets or the final report.
+
+---
+
+# PART 14 — PERFORMANCE AND SCALABILITY
+
+Management expects an initial deployment of approximately 10–30 field users, with a design capable of scaling to hundreds or thousands of authorized users.
+
+Inspect the application for avoidable bottlenecks, including:
+
+- Unbounded data retrieval.
+- Missing pagination.
+- Inefficient dashboard queries.
+- Excessive database requests.
+- Unnecessary realtime subscriptions.
+- Unbounded offline queues or media uploads.
+- Large exports that block the interface.
+- Missing useful database indexes.
+- Excessive rerenders or memory use.
+
+Add pagination, batching, indexing or other improvements where justified by the actual code and schema.
+
+Create or improve repeatable performance tests where feasible. Report the test configuration, dataset size, measured results and limitations.
+
+Do not claim capacity for thousands of users merely because the application builds. Do not insert fabricated production data or run destructive load tests against the live database.
+
+Use a separate test environment for synthetic load tests when available.
+
+---
+
+# PART 15 — AUTOMATED VERIFICATION AND DEFECT REMEDIATION
+
+Run the available project checks after the implementation.
+
+At minimum, inspect available scripts and run the relevant:
+
+- TypeScript checks.
+- Production build.
+- Linting, if configured.
+- Unit tests.
+- Integration tests.
+- Questionnaire logic tests.
+- Offline queue and duplicate-submission tests.
+- Export tests.
+- Map and geofence tests.
+- Relevant route and PWA checks.
+
+Add focused tests for important untested logic where the existing test framework supports them.
+
+Fix defects discovered by your changes, then rerun the affected tests.
+
+Record actual command results, failures and limitations.
+
+If an integration test needs a configured Supabase test environment, do not substitute a mock and report it as a live database test. Clearly distinguish unit tests, mocked tests, integration tests and verified production tests.
+
+---
+
+# PART 16 — MANUAL END-TO-END ACCEPTANCE PLAN
+
+Prepare an executable test report covering these scenarios.
+
+1. An authorized research manager creates a real project.
+2. The manager creates a questionnaire and submits it for review.
+3. An authorized reviewer approves and publishes a questionnaire version.
+4. An enumerator signs in with an individual account.
+5. The enumerator opens an assigned questionnaire and completes a test interview.
+6. The interview and every associated answer are verified in the database.
+7. The enumerator disconnects from the internet, completes another interview and saves it.
+8. The application is restarted while offline; the interview remains available.
+9. Connectivity returns and the submission synchronizes.
+10. Interrupted synchronization and repeated retries do not lose or duplicate data.
+11. A conflicting duplicate identifier is handled safely.
+12. Unauthorized cross-project reads and writes are denied.
+13. Conditional questions, skip logic, validation and questionnaire version handling are tested.
+14. GPS permissions, accuracy, missing GPS and geofence behavior are tested.
+15. Flexible fieldwork modes retain reviewable submissions.
+16. Authorized reviewers can flag, approve or reject records with reasons.
+17. The QR code is scanned and installation instructions are verified.
+18. The map error is retested on the deployed site.
+19. Dashboards and charts reflect the actual test submissions.
+20. CSV and XLSX exports contain the correct authorized records.
+21. Backup and restoration procedures are tested safely where possible.
+22. The platform is tested on actual Android and iOS devices.
+
+For every scenario, record:
+
+- Test ID.
+- Requirement.
+- Preconditions.
+- Test steps.
+- Expected result.
+- Actual result.
+- Evidence available.
+- Pass, fail or blocked status.
+- Defect and corrective action.
+- Retest outcome.
+
+If a scenario cannot be performed in the current environment, leave it explicitly pending. Provide the exact steps and evidence needed to complete it manually.
+
+---
+
+# PART 17 — COST AND THIRD-PARTY DEPENDENCY REPORT
+
+Prepare a concise operating-cost assessment using actual available plan and billing information.
+
+Identify:
+
+- Vercel hosting costs.
+- Supabase database, authentication, storage, bandwidth and usage limits.
+- Map provider and geocoding dependencies.
+- Media storage and upload costs.
+- Domain and DNS costs.
+- Monitoring, email/SMS or other third-party services actually used.
+- Any paid APIs or licensing requirements.
+- Potential usage-based charges and quota risks.
+- Practical cost-control measures.
+
+Do not invent current subscription prices or claim that an account is on a particular paid plan unless verified.
+
+Separate confirmed costs from estimates and unknowns. Where billing information is inaccessible, list the specific account settings or invoices an authorized CMRG administrator must check.
+
+Do not introduce a paid Google Maps dependency unless required and approved. If the existing Leaflet/OpenStreetMap solution meets the requirements, explain its applicable provider terms, attribution and usage limitations.
+
+The operating goal is a maintainable solution with controlled recurring costs. Do not sacrifice security or reliability merely to reduce cost.
+
+---
+
+# PART 18 — REQUIRED FINAL OUTPUT
+
+After completing the code-level work, provide one concise but comprehensive report with the following sections.
+
+### A. Management requirements matrix
+
+For every major requirement, show:
+
+- Requirement.
+- Implementation status.
+- Files or services involved.
+- Test evidence.
+- Remaining blocker.
+- Next action.
+
+### B. Changes implemented
+
+List the files actually modified and explain the functional change in each.
+
+### C. Map error diagnosis
+
+State the confirmed cause, the implemented correction and whether any API key or administrator action is still required.
+
+### D. Verification results
+
+Report the actual type-check, build, lint, unit-test and integration-test results. Distinguish successful tests from tests that could not be performed.
+
+### E. Database and security status
+
+Identify verified database behavior, RLS test results, access-control gaps and outstanding live checks.
+
+### F. Offline and synchronization status
+
+Report the actual test outcomes for persistence, interrupted synchronization, duplicate protection, retries and recovery.
+
+### G. Device and deployment status
+
+State whether Android, iPhone, iPad and desktop behavior has been tested on actual devices. Identify what remains to be tested on the deployed production URL.
+
+### H. Outstanding defects and blockers
+
+Prioritize them as critical, high, medium or low. Identify external credentials, configuration, device access or management decisions required.
+
+### I. Cost and ownership
+
+Summarize confirmed recurring costs, unknown costs, third-party dependencies, and the administrative access CMRG must retain.
+
+### J. Production acceptance verdict
+
+Use one of these labels:
+
+- **NOT READY:** critical functionality or security is defective.
+- **CONDITIONALLY READY FOR SUPERVISED PILOT:** code-level checks are satisfactory, but required operational or device verification remains.
+- **READY FOR FINAL ACCEPTANCE REVIEW:** the required acceptance tests have evidence of success and remaining limitations are documented.
+
+Do not declare final production acceptance merely because the application compiles.
+
+---
+
+# FINAL EXECUTION INSTRUCTIONS
+
+Work in the existing project and implement the safe, relevant corrections in this task.
+
+Prioritize actual defects and security problems over cosmetic improvements.
+
+Do not stop after auditing, but do not make destructive changes or invent unavailable infrastructure. When an external action blocks a particular feature, continue with independent work and report the blocker precisely.
+
+Preserve existing functionality and CMRG branding. Avoid unnecessary rewrites, duplicate services, new paid dependencies and unrelated design changes.
+
+Before finishing, inspect the final changes for regressions, run the available checks again, and provide the complete acceptance report described above.
+
+**The outcome must be an evidence-based assessment of the real CMRG Data Collect implementation—not a claim of completion unsupported by tests.**

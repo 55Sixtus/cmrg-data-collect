@@ -260,4 +260,5 @@ export interface GeofenceZone {
   assignedEnumerator?: string;
   active: boolean;
   createdAt?: string;
+  boundaryCoords?: { lat: number; lng: number }[];
 }
