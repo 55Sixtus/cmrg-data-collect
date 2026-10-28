@@ -227,9 +227,32 @@ class OfflineQueueService {
             audio_url: item.audioUrl || null
           });
 
-          if (!error || error.code === '23505') {
-            // Success or duplicate UUID already recorded (idempotent safe)
+          if (!error) {
             uploaded = true;
+          } else if (error.code === '23505') {
+            // Unique constraint violation: verify if existing record corresponds to this submission
+            try {
+              const targetUuid = item.client_submission_uuid || item.id;
+              const { data: existingRecord, error: queryErr } = await supabase
+                .from('submissions')
+                .select('id, project_id, client_submission_uuid')
+                .eq('client_submission_uuid', targetUuid)
+                .maybeSingle();
+
+              if (!queryErr && existingRecord && existingRecord.project_id === item.projectId) {
+                // Verified exact match for this submission UUID and project - safe to remove from local queue
+                uploaded = true;
+              } else {
+                console.warn('Conflict (23505): Existing record could not be verified or project mismatch. Retaining in offline queue for manual review.');
+                uploaded = false;
+              }
+            } catch (verifyErr) {
+              console.warn('Error verifying 23505 conflict:', verifyErr);
+              uploaded = false;
+            }
+          } else {
+            console.warn('Sync insertion error:', error.message);
+            uploaded = false;
           }
         } else {
           // In offline / standalone preview mode, sync marks item as transferred
