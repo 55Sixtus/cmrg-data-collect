@@ -13,16 +13,18 @@ import {
   Smartphone,
   Wrench,
   Rocket,
-  MapPin
+  MapPin,
+  Home
 } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
   flaggedCount: number;
+  onReturnHome?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, flaggedCount }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, flaggedCount, onReturnHome }) => {
   const navItems: { id: TabType; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: 'dashboard', label: 'Situation Room', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'projects', label: 'Field Projects', icon: <FolderKanban className="w-4 h-4" /> },
@@ -51,6 +53,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, flagg
         </div>
 
         <nav className="px-3 py-4 space-y-1">
+          {onReturnHome && (
+            <button
+              onClick={onReturnHome}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold text-white bg-red-600/30 hover:bg-red-600/50 border border-red-500/40 transition-all mb-3 shadow-sm"
+              title="Return to CMRG Home Page"
+            >
+              <Home className="w-4 h-4 text-[#C8202F] bg-white rounded-xs p-0.5" />
+              <span>CMRG Home Page</span>
+            </button>
+          )}
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             return (

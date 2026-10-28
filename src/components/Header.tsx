@@ -16,7 +16,8 @@ import {
   WifiOff,
   CloudUpload,
   Database,
-  QrCode
+  QrCode,
+  Home
 } from 'lucide-react';
 import { Project, Submission, Enumerator, TabType } from '../types';
 import { offlineQueue } from '../services/offlineQueue';
@@ -30,6 +31,7 @@ interface HeaderProps {
   onToggleSidebar: () => void;
   onNavigateTab: (tab: TabType) => void;
   onOpenWhatsAppConnect?: (projectCode?: string) => void;
+  onReturnHome?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -40,7 +42,8 @@ export const Header: React.FC<HeaderProps> = ({
   onSignOut, 
   onToggleSidebar,
   onNavigateTab,
-  onOpenWhatsAppConnect
+  onOpenWhatsAppConnect,
+  onReturnHome
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -117,12 +120,29 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         <div className="flex items-center gap-2.5">
-          <img 
-            src="/assets/aistudio/cmrg_logo_clean.png" 
-            alt="CMRG Ltd Logo" 
-            className="h-8 sm:h-9 w-auto object-contain"
-          />
-          <span className="hidden sm:inline-block bg-red-50 text-[#C8202F] text-[11px] font-semibold px-2 py-0.5 rounded-full border border-red-200">v4.8 Enterprise</span>
+          {onReturnHome ? (
+            <button 
+              onClick={onReturnHome}
+              className="flex items-center gap-2.5 hover:opacity-85 transition-opacity text-left group"
+              title="Return to CMRG Home / Landing Page"
+            >
+              <img 
+                src="/assets/aistudio/cmrg_logo_clean.png" 
+                alt="CMRG Ltd Logo" 
+                className="h-8 sm:h-9 w-auto object-contain"
+              />
+              <span className="hidden sm:inline-block bg-red-50 text-[#C8202F] text-[11px] font-semibold px-2 py-0.5 rounded-full border border-red-200 group-hover:bg-red-100 transition-colors">v4.8 Enterprise</span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-2.5">
+              <img 
+                src="/assets/aistudio/cmrg_logo_clean.png" 
+                alt="CMRG Ltd Logo" 
+                className="h-8 sm:h-9 w-auto object-contain"
+              />
+              <span className="hidden sm:inline-block bg-red-50 text-[#C8202F] text-[11px] font-semibold px-2 py-0.5 rounded-full border border-red-200">v4.8 Enterprise</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -271,6 +291,18 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden sm:inline">Offline Mode</span>
           </div>
         ) : null}
+
+        {/* Return Home Button */}
+        {onReturnHome && (
+          <button
+            onClick={onReturnHome}
+            className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-[#17243A] px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-xs"
+            title="Return to CMRG Home / Landing Page"
+          >
+            <Home className="w-3.5 h-3.5 text-[#C8202F]" />
+            <span className="hidden md:inline">Home</span>
+          </button>
+        )}
 
         {/* WhatsApp-Style Fast Pair QR Connect Button */}
         {onOpenWhatsAppConnect && (

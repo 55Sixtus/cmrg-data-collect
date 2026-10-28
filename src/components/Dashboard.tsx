@@ -188,23 +188,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const unmappedSubmissions = filteredSubmissions.filter(s => !s.gps || !s.gps.lat || !s.gps.lng);
   const mappedSubmissions = filteredSubmissions.filter(s => s.gps && s.gps.lat && s.gps.lng);
 
-  // Tile layer sources
+  // Tile layer sources (100% Keyless OpenStreetMap & Esri)
   const TILE_STYLES: Record<string, { url: string; attribution: string; subdomains?: string; maxZoom: number }> = {
     dark: {
-      url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-      attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
-      subdomains: 'abcd',
+      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19
     },
     light: {
-      url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-      attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
-      subdomains: 'abcd',
+      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19
     },
     satellite: {
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      attribution: '&copy; Esri, DigitalGlobe, GeoEye, Earthstar Geographics, USDA, USGS, AeroGRID, IGN, and the GIS User Community',
+      attribution: '&copy; Esri, DigitalGlobe, GeoEye, Earthstar Geographics, USDA, USGS, AeroGRID, IGN',
       maxZoom: 18
     },
     osm: {
@@ -356,6 +354,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (!mapRef.current) return;
 
     const currentStyleConfig = TILE_STYLES[mapStyle] || TILE_STYLES.dark;
+
+    if (mapRef.current) {
+      mapRef.current.style.filter = mapStyle === 'dark' ? 'brightness(0.65) invert(1) contrast(2.4) hue-rotate(200deg) saturate(0.3)' : 'none';
+    }
 
     if (!mapInstanceRef.current) {
       const map = L.map(mapRef.current, {

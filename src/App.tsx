@@ -436,6 +436,7 @@ export default function App() {
         onToggleSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
         onNavigateTab={(tab) => setActiveTab(tab)}
         onOpenWhatsAppConnect={handleOpenWhatsAppConnect}
+        onReturnHome={() => setCurrentView('landing')}
       />
 
       {isDemo && !isSupabaseConfigured && (
@@ -475,6 +476,7 @@ export default function App() {
               setMobileSidebarOpen(false);
             }} 
             flaggedCount={flaggedCount} 
+            onReturnHome={() => setCurrentView('landing')}
           />
         </div>
 
