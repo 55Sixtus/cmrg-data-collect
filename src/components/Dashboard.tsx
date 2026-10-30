@@ -31,7 +31,10 @@ import {
   Music,
   Film,
   Image,
-  Copy
+  Copy,
+  Clock,
+  Compass,
+  ArrowRight
 } from 'lucide-react';
 import L from 'leaflet';
 
@@ -754,222 +757,448 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="bg-[#0B0F17] text-gray-200 min-h-screen p-4 sm:p-6 font-sans space-y-5">
       
-      {/* 1. TOP RESEARCH OPS CONSOLE BAR - EXACT MATCH TO USER IMAGE */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-gray-800">
+      {/* 1. TOP RESEARCH OPS CONSOLE BAR - PROFESSIONAL ENTERPRISE DESIGN */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-3 border-b border-slate-800/80">
         
-        {/* Left: Console Tag & Platform */}
-        <div className="flex items-center gap-3">
-          <span className="bg-[#E30620] text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded shadow-sm tracking-wider">
-            CMRG RESEARCH OPS
-          </span>
-          <span className="text-xs text-gray-400 font-medium">
-            Platform: <span className="text-gray-200">Production Console</span>
-          </span>
+        {/* Left: Platform Identity & Status */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-base sm:text-lg font-bold text-white tracking-tight">
+              Field Operations Situation Room
+            </h1>
+            <span className="bg-[#E30620]/15 text-[#E30620] border border-[#E30620]/30 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full tracking-wide">
+              Production
+            </span>
+          </div>
+          <p className="text-xs text-slate-400">
+            Realtime Field GIS Telemetry <span className="text-slate-600">·</span> Supabase Live Sync <span className="text-slate-600">·</span> Active Surveillance
+          </p>
         </div>
 
-        {/* 4 Stat Cards in Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1 max-w-4xl lg:mx-6">
-          <div className="bg-[#121824] border border-gray-800 rounded-xl px-3 py-2">
-            <h4 className="text-sm font-black text-white">3 / 4</h4>
-            <p className="text-[10px] font-semibold text-emerald-400">100% field devices reporting</p>
+        {/* 4 Sleek KPI Metric Cards with unified iconography & typography */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 flex-1 max-w-3xl lg:mx-4">
+          <div className="bg-[#101726] border border-slate-800 hover:border-slate-700/80 rounded-xl p-3 shadow-xs transition-colors">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-[10px] font-semibold uppercase tracking-wider">Units</span>
+              <div className="w-5 h-5 rounded-md bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                <Radio className="w-3 h-3" />
+              </div>
+            </div>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-base font-bold text-white font-mono tabular-nums">3</span>
+              <span className="text-xs text-slate-400 font-mono">/ 4</span>
+            </div>
+            <p className="text-[11px] text-emerald-400 font-medium mt-0.5 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              All online
+            </p>
           </div>
 
-          <div className="bg-[#121824] border border-gray-800 rounded-xl px-3 py-2">
-            <h4 className="text-sm font-black text-white">585 seconds</h4>
-            <p className="text-[10px] text-gray-400">Quality threshold: &gt;120s</p>
+          <div className="bg-[#101726] border border-slate-800 hover:border-slate-700/80 rounded-xl p-3 shadow-xs transition-colors">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-[10px] font-semibold uppercase tracking-wider">Avg Time</span>
+              <div className="w-5 h-5 rounded-md bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                <Clock className="w-3 h-3" />
+              </div>
+            </div>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-base font-bold text-white font-mono tabular-nums">585s</span>
+              <span className="text-[10px] text-slate-400">9.8m</span>
+            </div>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+              Target &gt;120s
+            </p>
           </div>
 
-          <div className="bg-[#121824] border border-gray-800 rounded-xl px-3 py-2">
-            <h4 className="text-sm font-black text-[#E30620]">1 Interviews</h4>
-            <p className="text-[10px] text-red-300">2 unresolved QC alerts</p>
+          <div className="bg-[#101726] border border-slate-800 hover:border-slate-700/80 rounded-xl p-3 shadow-xs transition-colors">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-[10px] font-semibold uppercase tracking-wider">QC Alerts</span>
+              <div className="w-5 h-5 rounded-md bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                <AlertTriangle className="w-3 h-3" />
+              </div>
+            </div>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-base font-bold text-amber-400 font-mono tabular-nums">1 Flagged</span>
+            </div>
+            <p className="text-[11px] text-amber-400/90 font-medium mt-0.5">
+              2 anomalies pending
+            </p>
           </div>
 
-          <div className="bg-[#121824] border border-gray-800 rounded-xl px-3 py-2">
-            <h4 className="text-sm font-black text-white">2 samples</h4>
-            <p className="text-[10px] text-gray-400">Background QA active</p>
+          <div className="bg-[#101726] border border-slate-800 hover:border-slate-700/80 rounded-xl p-3 shadow-xs transition-colors">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-[10px] font-semibold uppercase tracking-wider">Batches</span>
+              <div className="w-5 h-5 rounded-md bg-purple-500/10 text-purple-400 flex items-center justify-center">
+                <Layers className="w-3 h-3" />
+              </div>
+            </div>
+            <div className="flex items-baseline gap-1 mt-1">
+              <span className="text-base font-bold text-white font-mono tabular-nums">2 Active</span>
+            </div>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+              Background QA active
+            </p>
           </div>
         </div>
 
-        {/* Right: Authenticated Supervisor Badge */}
-        <div className="flex items-center gap-2 text-xs">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span className="font-semibold text-white truncate">Dr. Damilare Afolabi (CMRG Lead)</span>
-          <span className="bg-[#E30620] text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase">
-            ADMIN
-          </span>
+        {/* Right: Authenticated Supervisor Lead Pill */}
+        <div className="flex items-center gap-2.5 bg-[#101726] border border-slate-800/80 rounded-xl px-3 py-2 shrink-0">
+          <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-white shrink-0">
+            DA
+          </div>
+          <div className="text-left">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-white">Dr. Damilare Afolabi</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            </div>
+            <p className="text-[10px] text-slate-400 font-medium">CMRG Lead · Supervisor</p>
+          </div>
         </div>
       </div>
 
-      {/* 2. MAIN SITUATION MAP CONTAINER - EXACT MATCH TO IMAGE */}
-      <div className="bg-[#121824] border border-gray-800 rounded-2xl p-5 shadow-2xl space-y-4">
+      {/* 2. GET STARTED · FIELDWORK LAUNCHPAD (CONSISTENT CARD-BASED LAYOUT) */}
+      <div className="bg-[#101726] border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-lg space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-800/70">
+          <div className="flex items-center gap-2.5">
+            <div className="w-2 h-2 rounded-full bg-[#E30620]"></div>
+            <div>
+              <h2 className="text-xs sm:text-sm font-bold text-white tracking-tight uppercase">
+                Get Started · Fieldwork Quick-Launch
+              </h2>
+              <p className="text-[11px] text-slate-400">
+                Four essential operational steps to deploy, supervise and audit field data collection
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-md border border-slate-700/60 self-start sm:self-auto">
+            Ready for Fieldwork
+          </span>
+        </div>
+
+        {/* 4 Standardized Action Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          
+          {/* Card 1: Questionnaire Studio */}
+          <button
+            type="button"
+            onClick={() => onNavigateTab('builder')}
+            className="group text-left p-4 rounded-xl bg-[#0B0F17] hover:bg-[#0E1524] border border-slate-800 hover:border-[#E30620]/50 transition-all flex flex-col justify-between space-y-3 shadow-xs"
+          >
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="w-8 h-8 rounded-lg bg-[#E30620]/15 text-[#E30620] border border-[#E30620]/30 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-mono font-semibold text-slate-400 bg-slate-800/60 px-2 py-0.5 rounded">
+                  Step 01
+                </span>
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-white group-hover:text-[#E30620] transition-colors">
+                  Design Questionnaire
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                  11+ dynamic question types, branching logic, audio prompts &amp; multi-version control.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-[11px] font-semibold text-[#E30620] pt-1">
+              <span>Open Studio</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </button>
+
+          {/* Card 2: Geo-Lock Perimeter */}
+          <button
+            type="button"
+            onClick={() => setShowTypeLockModal(true)}
+            className="group text-left p-4 rounded-xl bg-[#0B0F17] hover:bg-[#0E1524] border border-slate-800 hover:border-blue-500/50 transition-all flex flex-col justify-between space-y-3 shadow-xs"
+          >
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Compass className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-mono font-semibold text-slate-400 bg-slate-800/60 px-2 py-0.5 rounded">
+                  Step 02
+                </span>
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-white group-hover:text-blue-400 transition-colors">
+                  Set Geo-Lock Perimeter
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                  Search locations, draw geofences, and set drift buffers before enumerators depart.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-[11px] font-semibold text-blue-400 pt-1">
+              <span>Lock Location</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </button>
+
+          {/* Card 3: Pair Devices */}
+          <button
+            type="button"
+            onClick={() => onOpenWhatsAppConnect && onOpenWhatsAppConnect(filterProject !== 'all' ? projects.find(p => p.id === filterProject)?.code : undefined)}
+            className="group text-left p-4 rounded-xl bg-[#0B0F17] hover:bg-[#0E1524] border border-slate-800 hover:border-emerald-500/50 transition-all flex flex-col justify-between space-y-3 shadow-xs"
+          >
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <QrCode className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-mono font-semibold text-slate-400 bg-slate-800/60 px-2 py-0.5 rounded">
+                  Step 03
+                </span>
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors">
+                  Pair Field Devices
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                  Deploy to field phones via WhatsApp QR link with zero app store friction &amp; offline cache.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 pt-1">
+              <span>Connect QR</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </button>
+
+          {/* Card 4: Audit & Export */}
+          <button
+            type="button"
+            onClick={() => setShowExportMenu(true)}
+            className="group text-left p-4 rounded-xl bg-[#0B0F17] hover:bg-[#0E1524] border border-slate-800 hover:border-amber-500/50 transition-all flex flex-col justify-between space-y-3 shadow-xs"
+          >
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Download className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-mono font-semibold text-slate-400 bg-slate-800/60 px-2 py-0.5 rounded">
+                  Step 04
+                </span>
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors">
+                  Review &amp; Export Data
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                  Verify audio and GPS evidence, resolve QC anomalies, and download XLSX, CSV, or KML.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-[11px] font-semibold text-amber-400 pt-1">
+              <span>Export Suite</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </button>
+
+        </div>
+      </div>
+
+      {/* 2. MAIN SITUATION MAP CONTAINER - PROFESSIONAL CONTROL SUITE */}
+      <div className="bg-[#101726] border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
         
         {/* Top Header of Map Container */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          
+          {/* Map Title Lockup */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#E30620]/20 text-[#E30620] flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-[#E30620]/15 text-[#E30620] border border-[#E30620]/30 flex items-center justify-center shrink-0">
               <MapPin className="w-4 h-4 text-[#E30620]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
-                  CMRG FIELD SITUATION MAP
+                  Geospatial Field Map
                 </h2>
-                <span className="bg-[#E30620] text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">
-                  Leaflet GIS
+                <span className="bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded-md">
+                  Keyless Leaflet GIS
                 </span>
               </div>
-              <p className="text-[11px] text-gray-400">
-                Authorized server submission locations • Real submitted GPS coordinates
+              <p className="text-xs text-slate-400">
+                Verified submission locations <span className="text-slate-600">·</span> Real-time pre-field geolock perimeter
               </p>
             </div>
           </div>
 
-          {/* Action Buttons: Map View, Accessible Table, Style Switcher, Type & Lock Location, Sync */}
+          {/* Unified Enterprise Action Suite */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* Custom High-Contrast Map Style Switcher */}
-            <div className="flex items-center bg-[#0B0F17] p-0.5 rounded-lg border border-gray-700/80 text-[10px] font-bold">
+            
+            {/* View Mode Toggle (Map / Table) - Clean Segmented Pill */}
+            <div className="flex items-center bg-[#070A0F] p-1 rounded-xl border border-slate-800">
               <button
                 type="button"
-                onClick={() => setMapStyle('dark')}
-                className={`px-2 py-1 rounded transition-all ${mapStyle === 'dark' ? 'bg-[#E30620] text-white shadow-xs' : 'text-gray-400 hover:text-white'}`}
-                title="Tactical Dark Ops"
+                onClick={() => setViewMode('map')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                  viewMode === 'map' 
+                    ? 'bg-[#E30620] text-white shadow-xs' 
+                    : 'text-slate-400 hover:text-white'
+                }`}
               >
-                Dark Ops
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Map</span>
               </button>
               <button
                 type="button"
-                onClick={() => setMapStyle('light')}
-                className={`px-2 py-1 rounded transition-all ${mapStyle === 'light' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-400 hover:text-white'}`}
-                title="High-Contrast Light"
+                onClick={() => setViewMode('table')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                  viewMode === 'table' 
+                    ? 'bg-[#E30620] text-white shadow-xs' 
+                    : 'text-slate-400 hover:text-white'
+                }`}
               >
-                Light
+                <Table className="w-3.5 h-3.5" />
+                <span>Table</span>
+              </button>
+            </div>
+
+            {/* Map Style Switcher - Unified Neutral Palette */}
+            <div className="flex items-center bg-[#070A0F] p-1 rounded-xl border border-slate-800 text-xs">
+              <button
+                type="button"
+                onClick={() => setMapStyle('dark')}
+                className={`px-2.5 py-1.5 rounded-lg font-medium transition-all ${
+                  mapStyle === 'dark' 
+                    ? 'bg-slate-700 text-white shadow-xs' 
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Tactical Dark Mode"
+              >
+                Dark
               </button>
               <button
                 type="button"
                 onClick={() => setMapStyle('satellite')}
-                className={`px-2 py-1 rounded transition-all ${mapStyle === 'satellite' ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-400 hover:text-white'}`}
-                title="Satellite Hybrid"
+                className={`px-2.5 py-1.5 rounded-lg font-medium transition-all ${
+                  mapStyle === 'satellite' 
+                    ? 'bg-slate-700 text-white shadow-xs' 
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Satellite Imagery"
               >
                 Satellite
               </button>
               <button
                 type="button"
                 onClick={() => setMapStyle('osm')}
-                className={`px-2 py-1 rounded transition-all ${mapStyle === 'osm' ? 'bg-emerald-600 text-white shadow-xs' : 'text-gray-400 hover:text-white'}`}
-                title="Street OSM"
+                className={`px-2.5 py-1.5 rounded-lg font-medium transition-all ${
+                  mapStyle === 'osm' 
+                    ? 'bg-slate-700 text-white shadow-xs' 
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="OpenStreetMap Standard"
               >
                 OSM
               </button>
+              <button
+                type="button"
+                onClick={() => setMapStyle('light')}
+                className={`px-2.5 py-1.5 rounded-lg font-medium transition-all ${
+                  mapStyle === 'light' 
+                    ? 'bg-slate-200 text-slate-900 shadow-xs' 
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="High-Contrast Light"
+              >
+                Light
+              </button>
             </div>
 
-            <button
-              onClick={() => setViewMode('map')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                viewMode === 'map' ? 'bg-[#E30620] text-white shadow-md' : 'bg-white/5 text-gray-300 hover:bg-white/10'
-              }`}
-            >
-              <MapPin className="w-3.5 h-3.5" />
-              <span>Map View</span>
-            </button>
-
-            <button
-              onClick={() => setViewMode('table')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                viewMode === 'table' ? 'bg-[#E30620] text-white shadow-md' : 'bg-white/5 text-gray-300 hover:bg-white/10'
-              }`}
-            >
-              <Table className="w-3.5 h-3.5" />
-              <span>Accessible Table</span>
-            </button>
-
-            {/* KEY REQUESTED FEATURE: Type location and Geo-Lock it before fieldwork */}
+            {/* Primary Action: Type & Geo-Lock Location */}
             <button
               onClick={() => setShowTypeLockModal(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transition-all"
-              title="Type location to lock before sending enumerators to the field"
+              className="bg-[#E30620] hover:bg-[#C8202F] text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all active:scale-[0.98]"
+              title="Lock location perimeter before deploying field teams"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Type &amp; Geo-Lock Location</span>
+              <span>Geo-Lock Location</span>
             </button>
 
             {/* WhatsApp-Style Fast Pair QR Link Device Button */}
             {onOpenWhatsAppConnect && (
               <button
                 onClick={() => onOpenWhatsAppConnect(filterProject !== 'all' ? projects.find(p => p.id === filterProject)?.code : undefined)}
-                className="bg-[#25D366] hover:bg-[#1EBE5D] text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transition-all active:scale-[0.98]"
-                title="WhatsApp-Style Scan & Connect QR for Field Devices"
+                className="bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-slate-200 px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 shadow-xs transition-colors"
+                title="Scan QR to pair field devices via WhatsApp link"
               >
-                <QrCode className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">WhatsApp QR Link</span>
-                <span className="sm:hidden">QR Link</span>
+                <QrCode className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="hidden sm:inline">Pair Devices</span>
+                <span className="sm:hidden">QR</span>
               </button>
             )}
 
             {/* Public Shareable Check Link Button */}
             <button
               onClick={() => handleOpenShareCheck()}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transition-all"
-              title="Share Public Check Link to verify survey authenticity"
+              className="bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-slate-200 px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 shadow-xs transition-colors"
+              title="Share public verification link for client or public audit"
             >
-              <Share2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Share Check Link</span>
-              <span className="sm:hidden">Check</span>
+              <Share2 className="w-3.5 h-3.5 text-blue-400" />
+              <span className="hidden sm:inline">Verify Link</span>
+              <span className="sm:hidden">Verify</span>
             </button>
 
             {/* Export Dropdown Menu (Excel, CSV, KML) */}
             <div className="relative">
               <button
                 onClick={() => setShowExportMenu(!showExportMenu)}
-                className="bg-white/10 hover:bg-white/15 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md transition-all border border-white/10"
+                className="bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-slate-200 px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 shadow-xs transition-colors"
                 title="Export Situation Room Data"
               >
-                <Download className="w-3.5 h-3.5 text-emerald-400" />
+                <Download className="w-3.5 h-3.5 text-slate-300" />
                 <span>Export</span>
               </button>
 
               {showExportMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-[#121824] border border-gray-700 rounded-xl shadow-2xl py-1 z-50 text-xs animate-in fade-in duration-150">
-                  <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-gray-400 border-b border-gray-800">
+                <div className="absolute right-0 mt-2 w-52 bg-[#121824] border border-slate-700 rounded-xl shadow-2xl py-1.5 z-50 text-xs animate-in fade-in duration-150">
+                  <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
                     Export Formats
                   </div>
                   <button
                     onClick={handleExportExcel}
-                    className="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center gap-2 text-gray-200 hover:text-white"
+                    className="w-full px-3 py-2 text-left hover:bg-slate-800/80 flex items-center gap-2.5 text-slate-200 hover:text-white transition-colors"
                   >
                     <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
                     <div>
-                      <div className="font-bold">Excel (.xls / .xlsx)</div>
-                      <div className="text-[10px] text-gray-400">Full survey records &amp; GPS</div>
+                      <div className="font-semibold text-white">Excel Spreadsheet (.xlsx)</div>
+                      <div className="text-[10px] text-slate-400">Audited survey records &amp; GPS</div>
                     </div>
                   </button>
                   <button
                     onClick={handleExportCSV}
-                    className="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center gap-2 text-gray-200 hover:text-white"
+                    className="w-full px-3 py-2 text-left hover:bg-slate-800/80 flex items-center gap-2.5 text-slate-200 hover:text-white transition-colors"
                   >
                     <FileText className="w-4 h-4 text-blue-400" />
                     <div>
-                      <div className="font-bold">CSV Spreadsheet</div>
-                      <div className="text-[10px] text-gray-400">Comma-separated values</div>
+                      <div className="font-semibold text-white">CSV Data File</div>
+                      <div className="text-[10px] text-slate-400">Comma-separated tabular data</div>
                     </div>
                   </button>
                   <button
                     onClick={handleExportKML}
-                    className="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center gap-2 text-gray-200 hover:text-white"
+                    className="w-full px-3 py-2 text-left hover:bg-slate-800/80 flex items-center gap-2.5 text-slate-200 hover:text-white transition-colors"
                   >
                     <Globe className="w-4 h-4 text-amber-400" />
                     <div>
-                      <div className="font-bold">KML Spatial Layer</div>
-                      <div className="text-[10px] text-gray-400">Google Earth &amp; QGIS maps</div>
+                      <div className="font-semibold text-white">OpenGIS KML Layer</div>
+                      <div className="text-[10px] text-slate-400">Google Earth &amp; QGIS spatial</div>
                     </div>
                   </button>
                 </div>
               )}
             </div>
 
+            {/* Sync Button */}
             <button
               onClick={handleManualSync}
-              className="p-2 bg-white/5 hover:bg-white/10 text-gray-300 rounded-lg text-xs transition-colors"
-              title="Sync Database"
+              className="p-2 bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-slate-300 hover:text-white rounded-xl text-xs transition-colors shrink-0"
+              title="Refresh and sync data stream"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin text-[#E30620]' : ''}`} />
             </button>
@@ -977,14 +1206,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Server Data Status & Filter Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs pt-1 border-t border-gray-800/80">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-400 font-semibold">Filters:</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs pt-2 border-t border-slate-800/80">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-slate-400 font-semibold text-xs">Filter Stream:</span>
             
             <select
               value={filterProject}
               onChange={(e) => setFilterProject(e.target.value)}
-              className="bg-[#0B0F17] border border-gray-700 rounded-lg px-2.5 py-1 text-[11px] text-gray-200"
+              className="bg-[#070A0F] border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#E30620] focus:border-[#E30620] transition-colors"
             >
               <option value="all">All Questionnaires</option>
               {projects.map(p => (
@@ -995,7 +1224,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="bg-[#0B0F17] border border-gray-700 rounded-lg px-2.5 py-1 text-[11px] text-gray-200"
+              className="bg-[#070A0F] border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#E30620] focus:border-[#E30620] transition-colors"
             >
               <option value="all">All Statuses</option>
               <option value="Approved">Approved</option>
@@ -1007,7 +1236,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <select
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
-              className="bg-[#0B0F17] border border-gray-700 rounded-lg px-2.5 py-1 text-[11px] text-gray-200"
+              className="bg-[#070A0F] border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#E30620] focus:border-[#E30620] transition-colors"
             >
               <option value="all">All Dates</option>
               <option value="today">Today</option>
@@ -1015,13 +1244,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </select>
           </div>
 
-          <div className="flex items-center gap-2 text-[11px] text-gray-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span>Server Data Updated: <b className="text-gray-200">{lastSyncTime}</b></span>
-            <span>•</span>
-            <span><b>{mappedSubmissions.length}</b> Mapped / <b>{unmappedSubmissions.length}</b> No GPS</span>
-            <span>•</span>
-            <span className="text-[#E30620] font-bold"><b>{geofences.length}</b> Locked Zones</span>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 bg-[#070A0F] border border-slate-800 px-3 py-1.5 rounded-xl">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Sync: <b className="text-slate-200 font-mono">{lastSyncTime}</b></span>
+            <span className="text-slate-600">·</span>
+            <span><b className="text-white font-mono">{mappedSubmissions.length}</b> Mapped / <b className="text-slate-400 font-mono">{unmappedSubmissions.length}</b> No GPS</span>
+            <span className="text-slate-600">·</span>
+            <span className="text-[#E30620] font-bold"><b className="font-mono">{geofences.length}</b> Active Zones</span>
           </div>
         </div>
 

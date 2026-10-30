@@ -214,22 +214,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                     A powerful and flexible data collection platform for market research, public opinion polling and field surveys across Nigeria.
                   </p>
 
-                  <div className="grid grid-cols-2 gap-3 pt-2">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="w-5 h-5 text-[#E30620] shrink-0" />
-                      <span className="text-xs font-semibold text-gray-200">Secure & Reliable</span>
+                  {/* Enhanced card-based feature highlights for mobile */}
+                  <div className="grid grid-cols-2 gap-2.5 pt-2">
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-[#E30620]/20 flex items-center justify-center shrink-0">
+                        <ShieldCheck className="w-4 h-4 text-[#E30620]" />
+                      </div>
+                      <span className="text-xs font-semibold text-gray-200 leading-tight">Secure &amp; Reliable</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-[#E30620] shrink-0" />
-                      <span className="text-xs font-semibold text-gray-200">GPS Verified Fieldwork</span>
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-[#E30620]/20 flex items-center justify-center shrink-0">
+                        <MapPin className="w-4 h-4 text-[#E30620]" />
+                      </div>
+                      <span className="text-xs font-semibold text-gray-200 leading-tight">GPS Geo-Locked</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <BarChart3 className="w-5 h-5 text-[#E30620] shrink-0" />
-                      <span className="text-xs font-semibold text-gray-200">Real-time Analytics</span>
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-[#E30620]/20 flex items-center justify-center shrink-0">
+                        <BarChart3 className="w-4 h-4 text-[#E30620]" />
+                      </div>
+                      <span className="text-xs font-semibold text-gray-200 leading-tight">Live Analytics</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Smartphone className="w-5 h-5 text-[#E30620] shrink-0" />
-                      <span className="text-xs font-semibold text-gray-200">Web, Android & iOS</span>
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-[#E30620]/20 flex items-center justify-center shrink-0">
+                        <Smartphone className="w-4 h-4 text-[#E30620]" />
+                      </div>
+                      <span className="text-xs font-semibold text-gray-200 leading-tight">Zero-Install PWA</span>
                     </div>
                   </div>
 
@@ -244,7 +253,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                     </button>
                     <div className="text-[11px] text-gray-300">
                       <p className="font-semibold text-white">No Playstore. No App Store.</p>
-                      <p>Just Scan & Start Collecting.</p>
+                      <p>Just Scan &amp; Start Collecting.</p>
                     </div>
                   </div>
                 </div>
@@ -252,7 +261,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                 <div className="pt-4 rounded-2xl overflow-hidden border border-gray-800">
                   <img 
                     src="/assets/aistudio/hero_devices_only.png" 
-                    alt="CMRG Fieldwork Devices & Enumerator" 
+                    alt="CMRG Fieldwork Devices &amp; Enumerator" 
                     className="w-full h-auto object-cover"
                   />
                 </div>
@@ -261,7 +270,163 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
             </div>
           </section>
 
-          {/* 3. WHY CHOOSE CMRG DATA COLLECT SECTION */}
+          {/* 3. GET STARTED / HOW IT WORKS SECTION (CARD-BASED ENTERPRISE WORKFLOW) */}
+          <section className="bg-white text-[#111827] py-16 px-4 sm:px-8 border-b border-gray-200">
+            <div className="max-w-7xl mx-auto space-y-12">
+              
+              <div className="text-center space-y-3 max-w-2xl mx-auto">
+                <span className="text-xs font-bold text-[#E30620] uppercase tracking-wider">
+                  GET STARTED IN MINUTES
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[#0B0F17]">
+                  How to Get Started with CMRG
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                  Deploy surveys rapidly across Nigeria. A streamlined, card-based field workflow designed for market researchers, project managers, and enumerators.
+                </p>
+              </div>
+
+              {/* 4 Step Process Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                {/* Step 1 */}
+                <div className="bg-gray-50/70 hover:bg-white border border-gray-200/90 hover:border-[#E30620]/40 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-11 h-11 rounded-xl bg-red-50 text-[#E30620] border border-red-100 flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <FileText className="w-5 h-5 text-[#E30620]" />
+                      </div>
+                      <span className="text-xs font-mono font-bold text-gray-400 bg-white border border-gray-200 px-2.5 py-1 rounded-full">
+                        Step 01
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-[#0B0F17] group-hover:text-[#E30620] transition-colors">
+                        Design Survey
+                      </h3>
+                      <p className="text-xs text-gray-500 leading-relaxed mt-1.5">
+                        Build forms with 11+ question types, branching logic, audio prompts, and multilingual translations.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between text-[11px] font-semibold text-[#E30620]">
+                    <span>Questionnaire Studio</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div className="bg-gray-50/70 hover:bg-white border border-gray-200/90 hover:border-blue-500/40 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <MapPin className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <span className="text-xs font-mono font-bold text-gray-400 bg-white border border-gray-200 px-2.5 py-1 rounded-full">
+                        Step 02
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-[#0B0F17] group-hover:text-blue-600 transition-colors">
+                        Lock Geo-Perimeter
+                      </h3>
+                      <p className="text-xs text-gray-500 leading-relaxed mt-1.5">
+                        Establish Leaflet geofences, target quotas and meter drift buffers before field deployment.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between text-[11px] font-semibold text-blue-600">
+                    <span>Geo-Lock Manager</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="bg-gray-50/70 hover:bg-white border border-gray-200/90 hover:border-emerald-500/40 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <QrCode className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <span className="text-xs font-mono font-bold text-gray-400 bg-white border border-gray-200 px-2.5 py-1 rounded-full">
+                        Step 03
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-[#0B0F17] group-hover:text-emerald-600 transition-colors">
+                        Scan QR &amp; Collect
+                      </h3>
+                      <p className="text-xs text-gray-500 leading-relaxed mt-1.5">
+                        Enumerators scan WhatsApp QR to install instant PWA. Works offline with automatic background sync.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between text-[11px] font-semibold text-emerald-600">
+                    <span>Zero-Install PWA</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+
+                {/* Step 4 */}
+                <div className="bg-gray-50/70 hover:bg-white border border-gray-200/90 hover:border-amber-500/40 rounded-2xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <BarChart3 className="w-5 h-5 text-amber-600" />
+                      </div>
+                      <span className="text-xs font-mono font-bold text-gray-400 bg-white border border-gray-200 px-2.5 py-1 rounded-full">
+                        Step 04
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-[#0B0F17] group-hover:text-amber-600 transition-colors">
+                        Live Monitor &amp; Export
+                      </h3>
+                      <p className="text-xs text-gray-500 leading-relaxed mt-1.5">
+                        Watch GIS telemetry in Situation Room, verify audio/photos, and export XLSX, CSV, or KML files.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between text-[11px] font-semibold text-amber-600">
+                    <span>Situation Room</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Bottom CTA within Get Started */}
+              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="space-y-1 text-center sm:text-left">
+                  <h4 className="text-base font-bold text-[#0B0F17]">
+                    Ready to deploy your next field research project?
+                  </h4>
+                  <p className="text-xs text-gray-500">
+                    Sign in to your CMRG console or scan the QR code to start collecting on any mobile device.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => setShowQRModal(true)}
+                    className="px-5 py-2.5 bg-white border border-gray-300 hover:border-gray-400 text-gray-800 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs transition-colors"
+                  >
+                    <QrCode className="w-4 h-4 text-emerald-600" />
+                    <span>Scan App QR</span>
+                  </button>
+                  <button
+                    onClick={onContinueAsDemo}
+                    className="px-6 py-2.5 bg-[#E30620] hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2"
+                  >
+                    <span>Get Started</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          {/* 4. WHY CHOOSE CMRG DATA COLLECT SECTION */}
           <section className="bg-gray-50 text-[#111827] py-16 px-4 sm:px-8 border-b border-gray-200">
             <div className="max-w-7xl mx-auto space-y-12">
               
@@ -342,7 +507,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenLogin, onContinu
                       <BarChart3 className="w-5 h-5 text-[#E30620]" />
                     </div>
                     <h3 className="text-xs sm:text-sm font-bold text-[#0B0F17] mb-1.5">
-                      Analyse & Visualise
+                      Analyse &amp; Visualise
                     </h3>
                     <p className="text-[11px] text-gray-500 leading-relaxed">
                       Dashboards, charts, cross-tabs and real-time insights.

@@ -12,7 +12,6 @@ import {
   Store, 
   Check, 
   FileText, 
-  Sparkles,
   ArrowRight
 } from 'lucide-react';
 

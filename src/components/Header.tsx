@@ -296,11 +296,11 @@ export const Header: React.FC<HeaderProps> = ({
         {onReturnHome && (
           <button
             onClick={onReturnHome}
-            className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-[#17243A] px-3 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-xs"
+            className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-[#17243A] px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-xs shrink-0"
             title="Return to CMRG Home / Landing Page"
           >
             <Home className="w-3.5 h-3.5 text-[#C8202F]" />
-            <span className="hidden md:inline">Home</span>
+            <span className="hidden sm:inline">Home</span>
           </button>
         )}
 
@@ -308,12 +308,11 @@ export const Header: React.FC<HeaderProps> = ({
         {onOpenWhatsAppConnect && (
           <button
             onClick={() => onOpenWhatsAppConnect()}
-            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-xs transition-all active:scale-[0.98]"
+            className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 sm:bg-emerald-600 sm:hover:bg-emerald-700 sm:text-white p-1.5 sm:px-3 sm:py-1.5 rounded-lg text-xs font-bold shadow-xs transition-all active:scale-[0.98] border border-emerald-200 sm:border-transparent shrink-0"
             title="Scan QR to connect field enumerators (WhatsApp-Style)"
           >
-            <QrCode className="w-3.5 h-3.5" />
+            <QrCode className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-emerald-600 sm:text-white" />
             <span className="hidden sm:inline">Link Devices (QR)</span>
-            <span className="sm:hidden">Pair QR</span>
           </button>
         )}
 
@@ -321,7 +320,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           onClick={handleManualSync}
           disabled={syncing}
-          className="hidden sm:flex items-center gap-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-700 transition-colors"
+          className="hidden md:flex items-center gap-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-700 transition-colors shrink-0"
           title="Server Sync Status"
         >
           <RefreshCw className={`w-3.5 h-3.5 text-[#C8202F] ${syncing ? 'animate-spin' : ''}`} />
@@ -330,13 +329,13 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {/* Notifications */}
-        <div className="relative">
+        <div className="relative shrink-0">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2 text-gray-600 hover:text-[#17243A] hover:bg-gray-100 rounded-lg transition-colors"
+            className="relative p-1.5 sm:p-2 text-gray-600 hover:text-[#17243A] hover:bg-gray-100 rounded-lg transition-colors"
             title="Notifications"
           >
-            <Bell className="w-5 h-5" />
+            <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-[#C8202F] rounded-full ring-2 ring-white"></span>
           </button>
 
@@ -373,8 +372,8 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* User Profile & Sign Out */}
-        <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-gray-200">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#17243A] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+        <div className="flex items-center gap-1.5 sm:gap-3 pl-1.5 sm:pl-3 border-l border-gray-200 shrink-0">
+          <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-[#17243A] text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
             TF
           </div>
           <div className="hidden xl:block text-left">
@@ -383,7 +382,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <button
             onClick={onSignOut}
-            className="p-2 text-gray-400 hover:text-[#C8202F] hover:bg-red-50 rounded-lg transition-colors ml-1"
+            className="p-1.5 sm:p-2 text-gray-400 hover:text-[#C8202F] hover:bg-red-50 rounded-lg transition-colors shrink-0"
             title="Sign Out"
           >
             <LogOut className="w-4 h-4" />

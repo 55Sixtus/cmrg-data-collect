@@ -11,7 +11,6 @@ import {
   Radio, 
   ArrowRight, 
   X, 
-  Sparkles,
   RefreshCw,
   Check
 } from 'lucide-react';

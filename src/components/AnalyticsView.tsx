@@ -7,7 +7,6 @@ import {
   Filter, 
   PieChart, 
   CheckCircle2, 
-  Sparkles,
   TrendingUp,
   Table,
   FileText

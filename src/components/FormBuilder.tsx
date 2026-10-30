@@ -18,12 +18,11 @@ import {
   RefreshCw, 
   Copy, 
   ExternalLink,
-  Sparkles,
+  Sliders,
   FileCode2,
   Smartphone,
   BookOpen,
   Filter,
-  Sliders,
   History,
   Target,
   ArrowRight,
@@ -326,8 +325,8 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
             className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-3 py-2 rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
             title="Natural language study prompt generator"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#C8202F]" />
-            <span>AI Drafter</span>
+            <Sliders className="w-3.5 h-3.5 text-[#C8202F]" />
+            <span>Smart Drafter</span>
           </button>
 
           <button
@@ -548,7 +547,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
                     onClick={() => setShowAiModal(true)}
                     className="px-4 py-2 bg-[#C8202F] text-white text-xs font-semibold rounded-xl"
                   >
-                    AI Prompt Drafter
+                    Smart Study Drafter
                   </button>
                 </div>
               </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Questionnaire } from '../../types';
 import { StudyPromptGenerator } from '../../services/universalQuestionnaireTemplates';
-import { Sparkles, X, Wand2, Lightbulb, Check, Loader2 } from 'lucide-react';
+import { Sliders, X, FileText, Lightbulb, Check, Loader2 } from 'lucide-react';
 
 interface AiPromptModalProps {
   isOpen: boolean;
@@ -47,10 +47,10 @@ export const AiPromptModal: React.FC<AiPromptModalProps> = ({
         <div className="p-5 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-red-50/50 via-white to-gray-50">
           <div className="flex items-center gap-2.5">
             <span className="p-2 rounded-xl bg-[#C8202F] text-white shadow-xs">
-              <Sparkles className="w-4 h-4" />
+              <Sliders className="w-4 h-4" />
             </span>
             <div>
-              <h3 className="text-base font-bold text-[#17243A]">Natural Language Study Prompt Generator</h3>
+              <h3 className="text-base font-bold text-[#17243A]">Smart Study Prompt Generator</h3>
               <p className="text-xs text-gray-500">Describe your research goals and generate a full questionnaire with logic and validation</p>
             </div>
           </div>
@@ -135,7 +135,7 @@ export const AiPromptModal: React.FC<AiPromptModalProps> = ({
               </>
             ) : (
               <>
-                <Wand2 className="w-4 h-4" />
+                <FileText className="w-4 h-4" />
                 <span>Generate Universal Questionnaire</span>
               </>
             )}

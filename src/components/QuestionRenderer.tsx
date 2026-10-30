@@ -14,7 +14,6 @@ import {
   Plus, 
   Trash2, 
   PenTool, 
-  Sparkles,
   AlertTriangle,
   Info
 } from 'lucide-react';
