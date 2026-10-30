@@ -33,13 +33,22 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  // New project form state
-  const [newTitle, setNewTitle] = useState('');
-  const [newCode, setNewCode] = useState('CMRG-NEW-2026');
-  const [newClient, setNewClient] = useState('');
-  const [newSector, setNewSector] = useState<'FMCG' | 'Public Opinion' | 'Agriculture' | 'Healthcare' | 'Financial Services' | 'Energy'>('FMCG');
-  const [newTarget, setNewTarget] = useState(1000);
-  const [newDesc, setNewDesc] = useState('');
+  // New project form state with localStorage persistence
+  const [newTitle, setNewTitle] = useState(() => localStorage.getItem('cmrg_study_title') || '');
+  const [newCode, setNewCode] = useState(() => localStorage.getItem('cmrg_study_code') || 'CMRG-NEW-2026');
+  const [newClient, setNewClient] = useState(() => localStorage.getItem('cmrg_study_client') || '');
+  const [newSector, setNewSector] = useState<'FMCG' | 'Public Opinion' | 'Agriculture' | 'Healthcare' | 'Financial Services' | 'Energy'>(() => (localStorage.getItem('cmrg_study_sector') as any) || 'FMCG');
+  const [newTarget, setNewTarget] = useState(() => Number(localStorage.getItem('cmrg_study_target')) || 1000);
+  const [newDesc, setNewDesc] = useState(() => localStorage.getItem('cmrg_study_desc') || '');
+
+  React.useEffect(() => {
+    localStorage.setItem('cmrg_study_title', newTitle);
+    localStorage.setItem('cmrg_study_code', newCode);
+    localStorage.setItem('cmrg_study_client', newClient);
+    localStorage.setItem('cmrg_study_sector', newSector);
+    localStorage.setItem('cmrg_study_target', String(newTarget));
+    localStorage.setItem('cmrg_study_desc', newDesc);
+  }, [newTitle, newCode, newClient, newSector, newTarget, newDesc]);
 
   const filteredProjects = projects.filter(p => {
     const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase()) || p.code.toLowerCase().includes(searchTerm.toLowerCase());
@@ -74,6 +83,12 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
     setNewTitle('');
     setNewClient('');
     setNewDesc('');
+    localStorage.removeItem('cmrg_study_title');
+    localStorage.removeItem('cmrg_study_code');
+    localStorage.removeItem('cmrg_study_client');
+    localStorage.removeItem('cmrg_study_sector');
+    localStorage.removeItem('cmrg_study_target');
+    localStorage.removeItem('cmrg_study_desc');
   };
 
   return (

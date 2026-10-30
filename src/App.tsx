@@ -174,7 +174,7 @@ export default function App() {
       }
     }
     loadData();
-  }, [authChecking, session]);
+  }, [authChecking, session?.user?.id]);
 
   const flaggedCount = submissions.filter(s => s.status === 'Flagged').length;
 
